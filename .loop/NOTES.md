@@ -7,3 +7,6 @@
 - MIN_SESSION_MINUTES raised 15 → 25 after seeing 10–15 min fragments in the demo timetable.
 - Playwright runs with timezoneId Asia/Kolkata to catch off-by-one-day bugs.
 - useSubmitGuard initially locked 300ms even after a validation failure, so the 2nd click after fixing a form was ignored (caught by component tests). Handlers now return false on validation failure to release immediately.
+- Regeneration preview only offered "Close" when no session changed, so conflict-only changes (exam before start) could never be applied — caught by e2e; preview now also compares conflicts.
+- Capacity numbers: with 50-min sessions, 25-min minimum and a 60-min cap, only one session fits per day; "available" in conflicts is raw capacity, so scheduled can be less than available. Documented.
+- e2e seeds localStorage directly (helpers.seed) for speed; UI-driven flows cover setup.

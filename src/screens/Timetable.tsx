@@ -264,7 +264,9 @@ function PlanPreview({ preview, onCancel, onConfirm }: { preview: { plan: PlanRe
   const title = (s: StudySession) => data.topics.find((t) => t.id === s.topicId)?.title ?? 'Topic';
   const when = (s: StudySession) => `${formatDate(s.date)} ${formatTime(s.start)}`;
   const { diff, plan } = preview;
-  const changed = hasChanges(diff);
+  // Conflicts can change even when no session moves (e.g. an exam before the plan start).
+  const conflictsChanged = JSON.stringify(plan.conflicts) !== JSON.stringify(data.conflicts);
+  const changed = hasChanges(diff) || conflictsChanged;
   const kept = data.sessions.filter((s) => s.locked || s.status === 'completed' || s.status === 'in_progress').length;
   return (
     <ConfirmDialog title="Preview plan changes" confirmLabel={changed ? 'Apply changes' : 'Close'} onCancel={onCancel} onConfirm={changed ? onConfirm : onCancel}>
@@ -276,6 +278,7 @@ function PlanPreview({ preview, onCancel, onConfirm }: { preview: { plan: PlanRe
         <li className="list-item"><span>Unchanged</span><strong>{diff.unchanged.length}</strong></li>
       </ul>
       {!changed && <Notice level="success">Your plan is already up to date.</Notice>}
+      {!hasChanges(diff) && conflictsChanged && <Notice>No sessions change, but the capacity conflict list will be updated.</Notice>}
       {diff.added.length > 0 && (
         <details>
           <summary>Added sessions</summary>

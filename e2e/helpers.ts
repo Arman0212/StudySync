@@ -76,3 +76,30 @@ export async function noHorizontalOverflow(page: Page): Promise<void> {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 }
+
+export interface SeedTopic { id: string; subjectId: string; title: string; estimatedMinutes: number; status?: string; confidence?: number | null }
+export interface SeedSubject { id: string; name: string; examDate: string; examStart?: number | null }
+
+/** Writes a valid StudySync envelope straight into localStorage, then reloads. */
+export async function seed(page: Page, opts: { today: string; subjects: SeedSubject[]; topics: SeedTopic[]; sessions?: unknown[]; dailyMax?: number; planStart?: string }): Promise<void> {
+  const data = {
+    profile: { displayName: 'Asha', institution: '', timezone: 'Asia/Kolkata', planStart: opts.planStart ?? opts.today },
+    availability: { studyDays: [0, 1, 2, 3, 4, 5, 6], dayStart: 0, dayEnd: 1435, dailyMaxMinutes: opts.dailyMax ?? 600, sessionLength: 50, shortBreak: 10, longBreak: 30, sessionsBeforeLongBreak: 3 },
+    commitments: [],
+    subjects: opts.subjects.map((s) => ({ examStart: 9 * 60, priority: 'normal', color: '#2563a8', ...s })),
+    topics: opts.topics.map((t, i) => ({ notes: '', difficulty: 'moderate', importance: 'medium', status: 'not_started', confidence: null, order: i, ...t })),
+    sessions: opts.sessions ?? [],
+    conflicts: [],
+    activity: [],
+    mockConfig: null,
+    mockScores: [],
+    isDemo: false,
+  };
+  await page.goto('./');
+  await page.evaluate((env) => localStorage.setItem('studysync:data', JSON.stringify(env)), { app: 'studysync', schemaVersion: 2, savedAt: new Date().toISOString(), data });
+  await page.reload();
+}
+
+export async function stored(page: Page): Promise<{ data: { sessions: { id: string; topicId: string; date: string; start: number; duration: number; status: string; locked: boolean; rescheduleCount: number; history: unknown[] }[]; topics: { id: string; status: string }[]; subjects: unknown[]; profile: unknown } }> {
+  return page.evaluate(() => JSON.parse(localStorage.getItem('studysync:data') ?? 'null'));
+}
