@@ -105,6 +105,7 @@ export class DayLedger {
   private readonly commitments: Commitment[];
   private readonly sessionsByDay = new Map<ISODate, Interval[]>();
   private readonly commitmentCache = new Map<ISODate, Interval[]>();
+  private readonly usableCache = new Map<ISODate, Map<string, Minutes>>();
   readonly now: LocalNow;
   readonly firstDate: ISODate;
 
@@ -117,6 +118,7 @@ export class DayLedger {
   }
 
   add(p: Pick<Placement, 'date' | 'start' | 'duration'>): void {
+    this.usableCache.delete(p.date);
     const list = this.sessionsByDay.get(p.date) ?? [];
     list.push({ start: p.start, end: p.start + p.duration });
     list.sort((a, b) => a.start - b.start);
@@ -124,6 +126,7 @@ export class DayLedger {
   }
 
   remove(p: Pick<Placement, 'date' | 'start' | 'duration'>): void {
+    this.usableCache.delete(p.date);
     const list = this.sessionsByDay.get(p.date);
     if (!list) return;
     const i = list.findIndex((x) => x.start === p.start && x.end === p.start + p.duration);
@@ -236,6 +239,40 @@ export class DayLedger {
       }
       total += Math.max(0, Math.min(free, this.av.dailyMaxMinutes));
     }
+    return total;
+  }
+
+  /**
+   * Estimated study minutes still usable on `date` before `deadline`: free gaps in the
+   * window (after commitments and existing sessions plus their short breaks) that are at
+   * least MIN_SESSION_MINUTES long, capped by the day's remaining budget. Used for the
+   * capacity reservation; it ignores the long-break rule, which is why the scheduler
+   * verifies its result against the EDF baseline.
+   */
+  usableMinutes(date: ISODate, deadline: { date: ISODate; minutes: Minutes }): Minutes {
+    const key = date === deadline.date ? `d${deadline.minutes}` : 'all';
+    const cached = this.usableCache.get(date)?.get(key);
+    if (cached !== undefined) return cached;
+    let total = 0;
+    const win = this.windowOn(date, deadline);
+    if (win) {
+      const sb = this.av.shortBreak;
+      const blocks = [
+        ...this.blocksOn(date),
+        ...this.sessionsOn(date).map((s) => ({ start: s.start - sb, end: s.end + sb })),
+      ].sort((a, b) => a.start - b.start);
+      let cursor = win.start;
+      for (const b of [...blocks, { start: win.end, end: win.end }]) {
+        const gapEnd = Math.min(b.start, win.end);
+        if (gapEnd - cursor >= MIN_SESSION_MINUTES) total += gapEnd - cursor;
+        cursor = Math.max(cursor, b.end);
+        if (cursor >= win.end) break;
+      }
+      total = Math.max(0, Math.min(total, this.av.dailyMaxMinutes - this.usedMinutes(date)));
+    }
+    const m = this.usableCache.get(date) ?? new Map<string, Minutes>();
+    m.set(key, total);
+    this.usableCache.set(date, m);
     return total;
   }
 

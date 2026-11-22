@@ -6,7 +6,7 @@ Everything in the brief has been implemented and covered by automated tests. See
 
 - Onboarding, profile, availability, commitments, and subjects and topics, with inline validation and a confirmation for an exam before the plan start.
 - A deterministic scheduler:
-  - Earliest exam first, with priority ordering within each subject.
+  - Each day mixes subjects by a priority score, checked against an earliest-exam-first baseline so earlier exams are protected. Topics are ordered by priority within each subject.
   - Respects breaks, daily maximums, commitments and exam start times.
   - Lists capacity conflicts with suggestions.
 - Regeneration with an added/moved/removed preview that keeps completed, locked and in-progress sessions.
@@ -23,7 +23,7 @@ Everything in the brief has been implemented and covered by automated tests. See
 
 - **Real-world prompt testing:** run each prompt version in ChatGPT and Claude and fill in "Observed results" in `prompts/mock-test-*.md`. Nothing has been run yet.
 - **Deployment:** choose Vercel, Netlify or GitHub Pages and deploy with the team's own account (steps below). No public URL exists yet.
-- Possible product improvements: an option to interleave subjects instead of front-loading the earliest exam, drag-and-drop editing, reminders, and cross-browser end-to-end runs (Firefox and WebKit).
+- Possible product improvements: a user setting to tune how strongly subjects are mixed (for example the urgency window or the consecutive-session limit), drag-and-drop editing, reminders, and cross-browser end-to-end runs (Firefox and WebKit).
 - See [BLOCKERS.md](BLOCKERS.md), if present, for anything that could not be done.
 
 ## Run locally

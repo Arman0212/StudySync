@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { generatePlan, isPreserved, requiredMinutes, type PlanInput } from './scheduler';
+import { generateEdfPlan, generatePlan, isPreserved, requiredMinutes, type PlanInput } from './scheduler';
 import { checkPlan } from './invariants';
 import { previewBulkReschedule, applyOutcomes } from './rescheduler';
 import { addDays } from '../domain/dates';
@@ -181,5 +181,119 @@ describe('property generator sanity', () => {
     const withConflicts = results.filter((r) => r.conflicts.length > 0).length;
     expect(withSessions).toBeGreaterThan(60);
     expect(withConflicts).toBeGreaterThan(20);
+    // Most multi-subject random plans should use the interleaved pass, not the fallback.
+    const multi = samples.map((i, k) => ({ i, r: results[k]! })).filter(({ i }) => new Set(i.topics.map((t) => t.subjectId)).size > 1 && i.topics.some((t) => t.status !== 'completed'));
+    const interleaved = multi.filter(({ r }) => r.strategy === 'interleaved').length;
+    expect(interleaved / Math.max(1, multi.length)).toBeGreaterThan(0.5);
   });
+});
+
+function conflictBySubject(conflicts: { subjectId: string; neededMinutes: number }[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const c of conflicts) m.set(c.subjectId, (m.get(c.subjectId) ?? 0) + c.neededMinutes);
+  return m;
+}
+
+describe('interleaved scheduling (property-based)', () => {
+  it('(1)+(2) never makes a feasible plan infeasible and never leaves any subject worse off than EDF', () => {
+    fc.assert(
+      fc.property(worldArb, (input) => {
+        const edf = generateEdfPlan({ ...input, makeId: (() => { let n = 0; return () => `e${++n}`; })() });
+        const mixed = generatePlan(input);
+        expect(checkPlan(mixed.sessions, input)).toEqual([]);
+        if (edf.conflicts.length === 0) expect(mixed.conflicts).toEqual([]);
+        const e = conflictBySubject(edf.conflicts);
+        for (const [sid, mins] of conflictBySubject(mixed.conflicts)) expect(mins).toBeLessThanOrEqual(e.get(sid) ?? 0);
+      }),
+      { numRuns: RUNS },
+    );
+  });
+
+  it('(2) also holds when regenerating around preserved and missed sessions', () => {
+    fc.assert(
+      fc.property(worldArb, fc.array(fc.tuple(fc.nat(), fc.constantFrom('completed', 'locked', 'missed')), { maxLength: 20 }), (input, marks) => {
+        const existing = generatePlan(input).sessions.map((s) => ({ ...s }));
+        for (const [i, kind] of marks) {
+          const s = existing[i % Math.max(1, existing.length)];
+          if (!s) continue;
+          if (kind === 'completed') s.status = 'completed';
+          if (kind === 'locked') s.locked = true;
+          if (kind === 'missed') s.status = 'missed';
+        }
+        const next = { ...input, existingSessions: existing };
+        const edf = generateEdfPlan({ ...next, makeId: (() => { let n = 0; return () => `e${++n}`; })() });
+        const mixed = generatePlan(next);
+        const fresh = new Set(mixed.sessions.filter((s) => !existing.some((x) => x.id === s.id && isPreserved(x))).map((s) => s.id));
+        expect(checkPlan(mixed.sessions, next, { onlyIds: fresh })).toEqual([]);
+        if (edf.conflicts.length === 0) expect(mixed.conflicts).toEqual([]);
+        const e = conflictBySubject(edf.conflicts);
+        for (const [sid, mins] of conflictBySubject(mixed.conflicts)) expect(mins).toBeLessThanOrEqual(e.get(sid) ?? 0);
+        const t = totals(next, mixed.sessions, mixed.conflicts);
+        expect(t.scheduled + t.conflicted).toBe(t.required);
+      }),
+      { numRuns: RUNS },
+    );
+  });
+
+  // "Enough capacity": every day is a study day with a 12 h window and a 5 h maximum, no
+  // commitments, exams 10–30 days out, and at most 5 h of work per subject.
+  const roomyArb = fc
+    .record({
+      subjects: fc.array(
+        fc.record({
+          examOffset: fc.integer({ min: 10, max: 30 }),
+          high: fc.boolean(),
+          topics: fc.array(
+            fc.record({
+              minutes: fc.integer({ min: 30, max: 100 }),
+              difficulty: fc.constantFrom('easy', 'moderate', 'hard') as fc.Arbitrary<Topic['difficulty']>,
+              importance: fc.constantFrom('low', 'medium', 'high') as fc.Arbitrary<Topic['importance']>,
+              confidence: fc.option(fc.integer({ min: 1, max: 5 }), { nil: null }),
+            }),
+            { minLength: 1, maxLength: 3 },
+          ),
+        }),
+        { minLength: 2, maxLength: 4 },
+      ),
+      sessionLength: fc.integer({ min: 25, max: 90 }),
+      nowMinutes: fc.integer({ min: 0, max: 1439 }),
+    })
+    .map((w) => {
+      const subjects: Subject[] = w.subjects.map((s, i) => ({ id: `s${i}`, name: `s${i}`, examDate: addDays(START, s.examOffset), examStart: 9 * 60, priority: s.high ? 'high' : 'normal', color: '#000' }));
+      const topics: Topic[] = w.subjects.flatMap((s, i) => s.topics.map((t, j) => ({ id: `s${i}t${j}`, subjectId: `s${i}`, title: 't', notes: '', difficulty: t.difficulty, importance: t.importance, estimatedMinutes: t.minutes, status: 'not_started' as const, confidence: t.confidence, order: j })));
+      let n = 0;
+      const input: PlanInput = {
+        profile: { planStart: START },
+        availability: { studyDays: [0, 1, 2, 3, 4, 5, 6], dayStart: 8 * 60, dayEnd: 20 * 60, dailyMaxMinutes: 300, sessionLength: w.sessionLength, shortBreak: 10, longBreak: 30, sessionsBeforeLongBreak: 3 },
+        commitments: [],
+        subjects,
+        topics,
+        existingSessions: [],
+        now: { date: START, minutes: w.nowMinutes },
+        makeId: () => `g${++n}`,
+      };
+      return input;
+    });
+
+  it('(3) with enough capacity, the first week has sessions from every subject with a later exam', () => {
+    fc.assert(
+      fc.property(roomyArb, (input) => {
+        const r = generatePlan(input);
+        expect(r.conflicts).toEqual([]);
+        expect(r.strategy).toBe('interleaved');
+        expect(checkPlan(r.sessions, input)).toEqual([]);
+        const earliest = input.subjects.reduce((d, s) => (s.examDate < d ? s.examDate : d), '9999-12-31');
+        const weekEnd = addDays(START, 7); // first 7 days: START .. START+6
+        for (const s of input.subjects.filter((x) => x.examDate > earliest)) {
+          expect(r.sessions.some((x) => x.subjectId === s.id && x.date < weekEnd)).toBe(true);
+        }
+        // No more than two sessions of a subject in a row on a day when another subject
+        // still had work it could do that day (spot-check: at least the first day mixes).
+        const firstDay = r.sessions.filter((x) => x.date === r.sessions[0]!.date);
+        if (firstDay.length >= 3) expect(new Set(firstDay.map((x) => x.subjectId)).size).toBeGreaterThan(1);
+      }),
+      { numRuns: RUNS },
+    );
+  });
+
 });

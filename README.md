@@ -17,7 +17,8 @@ Built for **SCSE4041 Prompt Engineering** by team **Doppelgängers (PE-B25-53)**
   - Topics: difficulty, importance, estimate, status and confidence 1–5.
   - Inline validation, plus a warning and confirmation when an exam is before the plan start.
 - **Timetable generation:** deterministic and tested.
-  - Earliest exam first. Harder and more important topics come earlier within a subject, but every topic gets time.
+  - Each day mixes subjects by a priority score (urgency, difficulty, importance, overdue work), with no more than two sessions of the same subject in a row while another subject can use the slot.
+  - A capacity reservation, checked against an earliest-exam-first baseline, guarantees an earlier exam never loses time it needs. Every topic gets time.
   - Never places a session on non-study days, outside your hours, over commitments or other sessions, or beyond the daily maximum. Breaks are respected.
   - Nothing is scheduled after an exam starts.
   - Work that doesn't fit is shown in a **capacity conflict** list, with the time it needs, the time available and suggestions.
@@ -74,9 +75,9 @@ npm run verify         # all of the above in order (typecheck → lint → vites
 npm run package        # create studysync.zip of the source (no node_modules, dist or .loop)
 ```
 
-## Priority formula (a heuristic, not a validated model)
+## Priority formulas (heuristics, not validated models)
 
-Within a subject, topics are ordered by:
+**Topic priority**, which orders topics within a subject:
 
 ```
 priority = 3 × importance + 2 × difficulty + confidenceGap
@@ -86,16 +87,39 @@ difficulty:    easy = 1, moderate = 2, hard = 3
 confidenceGap: 0 if not rated, otherwise max(0, 3 − confidence)   (1 → +2, 2 → +1, 3–5 → 0)
 ```
 
-The range is 5 to 17. Across subjects, **the earliest exam always comes first**. A subject's "high priority" flag only breaks ties between exams that start at the same time. This is a simple, transparent heuristic chosen for explainability. It has not been validated as the best way to study. The code is in `src/scheduling/priority.ts`.
+The range is 5 to 17.
+
+**Session score**, which decides which subject gets the next free slot on a day:
+
+```
+score = priority of the subject's next topic        (5..17)
+      + urgency  = max(0, 14 − days until the exam)  (0..14)
+      + 2 if the subject is marked high priority
+      + overdue  = 3 × missed sessions of that topic (capped at +9)
+```
+
+Both are simple, transparent heuristics chosen because they are easy to explain. They have not been validated as the best way to study. The score only decides the *order* among subjects that are allowed to use a slot. Whether a subject is allowed at all is decided by the capacity reservation below, which protects earlier exams whatever their score. The code is in `src/scheduling/priority.ts`.
 
 ## How the scheduler works
 
 1. **Keep fixed sessions.** Completed, in-progress and locked sessions stay where they are. They count towards their topic's time, except missed ones.
-2. **Work out what's left.** Remaining work per topic = the estimate minus the time already covered. A completed topic needs no more time.
-3. **Earliest exam first (EDF).** Exams are processed from the earliest. Each exam's work goes into the earliest free valid slots before that exam starts. Every slot an earlier exam can use is also usable by a later exam, so filling the earliest deadline first means a later exam can never take a slot an earlier exam needed. Exams that start at the same moment are interleaved.
-4. **Order within a subject.** Each topic first gets one session, in priority order. The rest of the work then follows in priority order.
-5. **Session lengths.** Sessions are no longer than your preferred length and are split evenly. A session may be shortened to fit a gap, but never below 25 minutes unless that is all that's left of the topic.
-6. **Conflicts.** Work that cannot be placed becomes a capacity conflict. Scheduled time plus conflicted time always equals the remaining required time; property-based tests check this.
+2. **Work out what's left.** Remaining work per topic = the estimate minus the time already covered.
+3. **Feasibility pass: earliest exam first (EDF).** The planner first builds a plain earliest-exam-first plan. Every slot an earlier exam can use is also usable by a later exam, so this plan never lets a later exam take time an earlier exam needed. The amount it manages to schedule for each subject is the benchmark the final plan must meet.
+4. **Interleaved pass.** Days are filled in date order. For each free slot, every subject with work left whose exam is still ahead is ranked by its session score. A subject only gets the slot if all of these hold:
+   - The slot is valid: a study day, inside your hours, no commitment, breaks respected, under the daily maximum and before the exam.
+   - **The capacity reservation still holds.** For every earlier exam, the usable free time left before it is at least *margin × the work that exam still needs*.
+   - It would not make three sessions of the same subject in a row. This rule only gives way if no other subject can use the slot.
+
+   Anything left after the day loop is placed by the earliest-exam-first routine.
+5. **Verification.** The interleaved plan is accepted only if no subject ends up with more unscheduled time than in the feasibility pass. If one does, the pass is retried with a stricter reservation margin (1.1, then 1.5, then 2.5). After that, the plain earliest-exam-first plan is used. So interleaving can never turn a feasible plan into an infeasible one.
+6. **Order within a subject.** Each topic first gets one session, in priority order. The rest of the work then follows in priority order.
+7. **Session lengths.** Sessions are no longer than your preferred length and are split evenly. They are never shorter than 25 minutes unless that is all that's left of the topic.
+8. **Conflicts.** Work that cannot be placed becomes a capacity conflict. Scheduled time plus conflicted time always equals the remaining required time.
+
+Property-based tests check all of this on hundreds of random plans:
+- the placement rules and the time-accounting rule above;
+- "never worse than earliest-exam-first";
+- that when there is enough room, the first week already contains sessions for every subject with a later exam.
 
 Without an exam start time, the whole exam day is treated as unavailable for that subject.
 
@@ -121,7 +145,8 @@ ESLint enforces the architecture rules. Code in `domain/` and `scheduling/` cann
 ## Known limitations
 
 - Data lives in one browser's `localStorage`; it is not synced between devices. Use Export and Import to move it.
-- The scheduler front-loads work: an earlier exam's work is placed before a later exam's work, so a later subject may not start until the earlier exam's topics are scheduled. This is safe, but it is not always how students like to interleave subjects.
+- Mixing subjects is best-effort. When time is tight, the capacity reservation (and, if needed, the earliest-exam-first fallback) wins, so plans with little spare capacity can still front-load the earliest exam. On a fixed sample of random scenarios, 125 of 142 multi-subject plans (88%) used the interleaved pass; the rest fell back.
+- The capacity reservation estimates usable time without modelling the long-break rule exactly. Correctness does not depend on it, because every result is checked against the earliest-exam-first baseline.
 - There are no drag-and-drop edits, and there are no notifications or reminders.
 - The mock-test prompts have **not** been tried against real assistants yet; the "Observed results" sections are empty on purpose.
 - The readiness indicator is a simple average of the inputs you entered. It is not a validated measure.

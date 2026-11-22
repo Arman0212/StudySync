@@ -10,3 +10,4 @@
 - Regeneration preview only offered "Close" when no session changed, so conflict-only changes (exam before start) could never be applied — caught by e2e; preview now also compares conflicts.
 - Capacity numbers: with 50-min sessions, 25-min minimum and a 60-min cap, only one session fits per day; "available" in conflicts is raw capacity, so scheduled can be less than available. Documented.
 - e2e seeds localStorage directly (helpers.seed) for speed; UI-driven flows cover setup.
+- Interleaved scheduler (2026-11-22): a first-draft 'no 3 in a row' property failed on a legitimate case (only the 3rd same-subject session fit the remaining daily budget); replaced with deterministic scenarios. Probe tests via process.stdout.write + --silent=false to see output.

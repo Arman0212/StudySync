@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generatePlan, nextChunk, requiredMinutes, conflictSuggestions } from './scheduler';
+import { generateEdfPlan, generatePlan, nextChunk, requiredMinutes, conflictSuggestions } from './scheduler';
+import { sessionScore } from './priority';
 import { checkPlan } from './invariants';
 import { av, commitment, planInput, session, subject, topic } from '../test/factories';
 import type { PlanInput } from './scheduler';
@@ -207,5 +208,83 @@ describe('regeneration', () => {
     const r = run(planInput({ subjects, topics }));
     expect(performance.now() - t0).toBeLessThan(3000);
     expect(r.conflicts).toEqual([]);
+  });
+});
+
+describe('interleaved placement', () => {
+  const runs = (list: { date: string; start: number; subjectId: string }[]) => {
+    const byDay = new Map<string, string[]>();
+    for (const s of [...list].sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start)) byDay.set(s.date, [...(byDay.get(s.date) ?? []), s.subjectId]);
+    let longest = 0;
+    for (const seq of byDay.values()) {
+      let run = 0;
+      seq.forEach((x, i) => { run = i > 0 && seq[i - 1] === x ? run + 1 : 1; longest = Math.max(longest, run); });
+    }
+    return longest;
+  };
+
+  it('mixes subjects from day one instead of starving the later exam', () => {
+    const early = subject('early', '2026-01-15');
+    const late = subject('late', '2026-01-30');
+    const input = planInput({ subjects: [early, late], topics: [topic('e', 'early', 400), topic('l', 'late', 400)] });
+    const edf = generateEdfPlan(input);
+    const mixed = run(input);
+    expect(mixed.strategy).toBe('interleaved');
+    // EDF puts nothing of "late" on the first day; the interleaved plan does.
+    expect(edf.sessions.filter((s) => s.date === '2026-01-05').every((s) => s.subjectId === 'early')).toBe(true);
+    expect(mixed.sessions.some((s) => s.date === '2026-01-05' && s.subjectId === 'late')).toBe(true);
+    expect(mixed.conflicts).toEqual([]);
+  });
+
+  it('never puts more than two sessions of one subject in a row when another subject can use the slot', () => {
+    const a = subject('a', '2026-01-20');
+    const b = subject('b', '2026-01-21');
+    const c = subject('c', '2026-01-22');
+    const topics = [topic('a1', 'a', 300, { importance: 'high', difficulty: 'hard' }), topic('b1', 'b', 300), topic('c1', 'c', 300, { importance: 'low', difficulty: 'easy' })];
+    const r = run(planInput({ availability: av({ dailyMaxMinutes: 600 }), subjects: [a, b, c], topics }));
+    expect(r.strategy).toBe('interleaved');
+    // Any third-in-a-row session must come after every other subject's last session,
+    // i.e. at a point where no other subject had work left to place.
+    const sorted = [...r.sessions].sort((x, y) => x.date.localeCompare(y.date) || x.start - y.start);
+    sorted.forEach((x, i) => {
+      if (i < 2 || x.date !== sorted[i - 2]!.date) return;
+      if (x.subjectId !== sorted[i - 1]!.subjectId || x.subjectId !== sorted[i - 2]!.subjectId) return;
+      expect(sorted.slice(i + 1).some((y) => y.subjectId !== x.subjectId)).toBe(false);
+    });
+    // and while all three subjects still have work, the first day has no run above two
+    const firstDay = sorted.filter((x) => x.date === '2026-01-05');
+    expect(runs(firstDay)).toBeLessThanOrEqual(2);
+  });
+
+  it('allows a third session in a row only when nothing else is eligible', () => {
+    // Only one subject has work left: it may fill the day.
+    const r = run(planInput({ subjects: [subject('a', '2026-01-20'), subject('b', '2026-01-21')], topics: [topic('a1', 'a', 300), topic('b1', 'b', 30, { status: 'completed' })] }));
+    expect(runs(r.sessions)).toBeGreaterThan(2);
+  });
+
+  it('keeps an earlier exam safe when capacity is tight (falls back or reserves)', () => {
+    // Exactly enough room for the early exam before it starts; the later exam must wait.
+    const early = subject('early', '2026-01-07', { examStart: 8 * 60 });
+    const late = subject('late', '2026-01-09', { examStart: 8 * 60, priority: 'high' });
+    const input = planInput({ availability: av({ dailyMaxMinutes: 100 }), subjects: [late, early], topics: [topic('l', 'late', 200, { difficulty: 'hard', importance: 'high' }), topic('e', 'early', 200, { difficulty: 'easy', importance: 'low' })] });
+    const r = run(input);
+    expect(minutesFor(r.sessions, 'e')).toBe(200);
+    expect(minutesFor(r.sessions, 'l')).toBe(200);
+    expect(r.conflicts).toEqual([]);
+    for (const s of r.sessions.filter((x) => x.topicId === 'l')) expect(s.date >= '2026-01-07').toBe(true);
+  });
+
+  it('uses the caller id factory only for the returned plan', () => {
+    let n = 0;
+    const r = generatePlan(planInput({ subjects: [subject('a', '2026-01-20'), subject('b', '2026-01-25')], topics: [topic('a1', 'a', 100), topic('b1', 'b', 100)], makeId: () => `id${++n}` }));
+    expect(r.sessions.map((s) => s.id).sort()).toEqual(Array.from({ length: r.sessions.length }, (_, i) => `id${i + 1}`).sort());
+  });
+
+  it('session score adds urgency, high priority and overdue work to topic priority', () => {
+    const t = { importance: 'medium', difficulty: 'moderate', confidence: null } as const;
+    expect(sessionScore(t, { examDate: '2026-02-01', priority: 'normal' }, '2026-01-05', 0)).toBe(10);
+    expect(sessionScore(t, { examDate: '2026-01-10', priority: 'normal' }, '2026-01-05', 0)).toBe(19);
+    expect(sessionScore(t, { examDate: '2026-01-10', priority: 'high' }, '2026-01-05', 1)).toBe(24);
+    expect(sessionScore(t, { examDate: '2026-02-01', priority: 'normal' }, '2026-01-05', 10)).toBe(19);
   });
 });

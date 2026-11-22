@@ -13,7 +13,8 @@
  * themselves are ordered by exam date/time first (earliest exam first); the
  * subject's "high" priority flag only breaks ties between exams at the same time.
  */
-import type { Difficulty, Importance, Subject, Topic } from '../domain/types';
+import type { Difficulty, ISODate, Importance, Subject, Topic } from '../domain/types';
+import { diffDays } from '../domain/dates';
 
 export const IMPORTANCE_WEIGHT: Record<Importance, number> = { low: 1, medium: 2, high: 3 };
 export const DIFFICULTY_WEIGHT: Record<Difficulty, number> = { easy: 1, moderate: 2, hard: 3 };
@@ -45,4 +46,25 @@ export function compareSubjects(a: Subject, b: Subject): number {
   if (ka !== kb) return ka < kb ? -1 : 1;
   if (a.priority !== b.priority) return a.priority === 'high' ? -1 : 1;
   return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+}
+
+/** Exams closer than this many days get an urgency bonus. */
+export const URGENCY_WINDOW_DAYS = 14;
+
+/**
+ * Score used to pick which subject gets a free slot on a given day (interleaved pass).
+ * Also a transparent HEURISTIC:
+ *
+ *   score = topicPriority(next topic)                    5..17  (importance, difficulty, confidence)
+ *         + urgency  = max(0, 14 − days until the exam)  0..14
+ *         + 2 if the subject is marked high priority
+ *         + overdue  = 3 × missed sessions of the topic (capped at 3 sessions → +9)
+ *
+ * The score only decides the ORDER among eligible subjects. Whether a subject is
+ * eligible at all is decided by the capacity reservation in scheduler.ts, which protects
+ * earlier exams regardless of score.
+ */
+export function sessionScore(topic: Pick<Topic, 'importance' | 'difficulty' | 'confidence'>, subject: Pick<Subject, 'examDate' | 'priority'>, date: ISODate, missedCount: number): number {
+  const urgency = Math.max(0, URGENCY_WINDOW_DAYS - diffDays(date, subject.examDate));
+  return topicPriority(topic) + urgency + (subject.priority === 'high' ? 2 : 0) + 3 * Math.min(3, Math.max(0, missedCount));
 }

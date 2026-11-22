@@ -2,7 +2,49 @@
 
 Everything below was copied from real command output. Nothing was estimated.
 
-## Final clean verification: 2026-11-22, 23:29 IST (Asia/Kolkata)
+## Latest run: 2026-11-22, 23:47 IST (Asia/Kolkata), after adding interleaved scheduling
+
+Command: `npm run verify`, exit code 0. Same environment as the run below; dependencies were already installed by the clean `npm ci` earlier that evening.
+
+```
+--- verify summary ---
+passed (1.6s)      Type check (tsc strict)
+passed (1.9s)      Lint (eslint)
+passed (2.5s)      Unit, property and component tests (vitest)
+passed (0.3s)      Production build (vite)
+passed (14.0s)     End-to-end + accessibility + responsive tests (playwright)
+
+All verification steps passed.
+```
+
+| Step | Result |
+|---|---|
+| Type check | 0 errors |
+| Lint | 0 errors, 0 warnings |
+| Vitest | **15 files, 138 tests passed, 0 failed** (was 129; +9) |
+| Build | succeeded |
+| Playwright | **29 tests passed, 0 failed** (unchanged) |
+
+New and changed scheduler tests:
+
+- `src/scheduling/scheduler.property.test.ts`: 7 tests, up from 4. Each property runs 300 random worlds.
+  - **(1) + (2)** Every placement rule holds for the interleaved plan. Whenever the earliest-exam-first (EDF) plan has no conflicts, the interleaved plan has none either, and no subject has more conflict minutes than under EDF.
+  - **(2)** The same holds when regenerating around completed, locked and missed sessions. Scheduled plus conflicted time still equals the required time.
+  - **(3)** With 2–4 subjects and enough capacity (every day a study day, a 12 h window, a 5 h maximum, exams 10–30 days out, at most 5 h of work per subject), the plan is interleaved with no conflicts, and the first 7 days contain sessions from every subject with a later exam.
+  - The generator sanity check now also requires more than 50% of multi-subject random plans to be interleaved. The measured value on that fixed-seed sample was 125/142, i.e. 88%; I read it once from a temporary debug print that was then removed.
+  - The original 3 invariant properties are unchanged and now exercise the interleaved scheduler, because `generatePlan` is the interleaved planner.
+- `src/scheduling/scheduler.test.ts`: 25 tests, up from 19. New scenarios:
+  - The first day mixes subjects where EDF did not.
+  - At most two of a subject in a row while another subject still has work.
+  - A third in a row is allowed only when nothing else is eligible.
+  - A tight earlier exam is still fully protected.
+  - Ids from the caller's factory are used only for the returned plan.
+  - The session-score formula.
+- While writing the tests, a first-draft property for the consecutive rule failed. Its counterexample was legitimate: the third session was the only one that fit the 24 minutes left under the daily maximum, which is allowed by "unless nothing else is eligible". I replaced it with exact deterministic scenarios instead of weakening the scheduler.
+
+---
+
+## Earlier run: final clean verification: 2026-11-22, 23:29 IST (Asia/Kolkata)
 
 Environment: macOS (Darwin 25.5), Node v24.14.1, npm 11.11.0, Playwright 1.65.1 (Chromium headless shell build 1255).
 
@@ -35,8 +77,8 @@ All verification steps passed.
 
 | File | Tests | Covers |
 |---|---|---|
-| src/scheduling/scheduler.test.ts | 19 | Scheduler scenarios, regeneration, even splitting, performance |
-| src/scheduling/scheduler.property.test.ts | 4 | fast-check invariants (300 random worlds per property) and a generator sanity check |
+| src/scheduling/scheduler.test.ts | 19 | Scheduler scenarios, regeneration, even splitting, performance (25 in the latest run) |
+| src/scheduling/scheduler.property.test.ts | 4 | fast-check invariants (300 random worlds per property) and a generator sanity check (7 in the latest run) |
 | src/scheduling/rescheduler.test.ts | 5 | Single and bulk reschedule, conflict choices, plan diff |
 | src/scheduling/priority.test.ts | 4 | Priority formula and ordering |
 | src/scheduling/manual.test.ts | 2 | Manual edit validation |

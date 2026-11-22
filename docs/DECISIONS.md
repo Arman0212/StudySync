@@ -25,8 +25,18 @@ No router, state, date or UI libraries: a hash router, a small context store and
 - **Autosave inside dispatch** (event time) rather than in an effect, so StrictMode and the React Compiler lint rules are satisfied and saves happen exactly once per change.
 
 ## Scheduling
-- **Earliest-Deadline-First** across exams: an earlier exam's work is placed into the earliest free slots before any later exam's work is considered. This provably prevents a later exam from taking slots an earlier exam needed (exchange argument) and is simple to explain. Trade-off: work is front-loaded, so a later subject may not start until the earlier exam's work is placed. Front-loading also leaves buffer time near exams for rescheduling missed sessions.
-- Subjects whose exams start at the same moment are **interleaved round-robin** so neither starves.
+- **Two passes: an EDF feasibility baseline, then an interleaved day-by-day fill** (changed 2026-11-22 from pure EDF). Pure Earliest-Deadline-First was provably safe, but it starved later subjects early in the plan; this was the known limitation. Now:
+  1. EDF runs first. The minutes it schedules per subject are the feasibility benchmark.
+  2. Days are then filled in date order. Each slot goes to the eligible subject with the highest session score.
+  3. A subject is eligible only if the **capacity reservation** for every earlier exam still holds: margin × the remaining EDF-feasible work for exams up to and including that one must be no more than the usable minutes left before it. It must also not make three sessions of the same subject in a row, unless nothing else is eligible.
+  4. Leftovers are placed by EDF.
+  5. The result is accepted only if no subject has more conflict minutes than EDF. Otherwise it retries with margins 1.1 → 1.5 → 2.5, then falls back to plain EDF.
+- **Why verify against EDF instead of trusting the reservation?** The reservation uses a fluid estimate of usable minutes: gaps of at least 25 minutes, capped by the daily budget, without the long-break rule. That estimate can be optimistic with fragmented days. Checking against the exact EDF result gives a hard guarantee (property-tested: "a feasible EDF plan stays feasible" and "no subject is worse off") while keeping the code simple.
+- **Why margins and a fallback?** Starting at 1.1 leaves a little slack for fragmentation. Tighter scenarios retry more conservatively. The final fallback means the worst case is exactly the old, proven-safe behaviour. On a fixed-seed sample of random scenarios, 88% of multi-subject plans (125/142) were accepted as interleaved.
+- **Session score** = topic priority + urgency (max(0, 14 − days to exam)) + 2 for high-priority subjects + 3 × missed sessions of the topic (cap 3). Urgency is measured from the day being filled, so a subject naturally gets more slots as its exam approaches. The score only orders eligible subjects; it can never override the reservation.
+- **Consecutive rule:** at most 2 sessions of the same subject in a row on a day, judged by time order including preserved sessions. It yields only when no other subject can use that slot (for example, the others are finished, past their exam, blocked by the reservation, or their minimum chunk doesn't fit the remaining daily budget).
+- Subjects whose exams start at the same moment are still interleaved round-robin in the EDF pass.
+- Planning attempts use temporary ids, and only the accepted plan draws ids from the real id factory, so rejected attempts never consume ids.
 - Within a subject: one session per topic in priority order first (every topic gets time), then the remaining work in priority order.
 - **Priority formula** `3×importance + 2×difficulty + confidenceGap` — a heuristic, documented in code and README. The subject "high priority" flag only breaks ties between exams at the same time, because the brief says earlier exams get priority.
 - Exam **without a start time** → the whole exam day is unavailable for that subject (safest assumption).
