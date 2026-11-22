@@ -1,9 +1,16 @@
-/** StudySync logo: rounded forest-green square with a white check, plus the wordmark. */
-export function LogoMark({ size = 32 }: { size?: number }) {
+/** StudySync logo: a black rounded square with a white "S", plus the wordmark. */
+export function LogoMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false" className="logo-mark">
-      <rect width="32" height="32" rx="8" fill="var(--color-primary)" />
-      <path d="M9 17.5l4.5 4.5L23 11" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect width="32" height="32" rx="8" fill="#111827" />
+      <path
+        d="M20.6 11.4c-.9-1.5-2.6-2.4-4.7-2.4-2.9 0-4.9 1.6-4.9 3.9 0 2.2 1.6 3.2 4.4 3.8l1.3.3c1.8.4 2.6 1 2.6 2.1 0 1.3-1.3 2.2-3.2 2.2-1.8 0-3.1-.8-3.7-2.1"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

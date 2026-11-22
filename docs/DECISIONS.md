@@ -51,3 +51,8 @@ No router, state, date or UI libraries: a hash router, a small context store and
 - Manual session edits are blocked if they overlap a session or commitment, break the daily max, leave the study window/day or pass the exam.
 - Reset requires typing RESET. Import asks before replacing. Corrupted data opens a recovery screen and autosave is disabled until the student chooses.
 - Schema v1 is defined as an early draft format (no activity log, mock data, demo flag or session history). There were no real v1 users; the migration exists to exercise and test the migration path.
+
+## Visual design
+- **One white light theme** with a single indigo accent (`#4F46E5`), defined in `src/styles/tokens.ts`. Dark mode and system-theme switching were removed on purpose, so the app always looks the same. An e2e test checks that a dark system setting changes nothing.
+- **Subject colours are mapped, not migrated.** Subjects still store their original palette hex values, so saved data, exports, imports and the demo are unchanged. `src/ui/subjectColors.ts` maps each stored value to a muted display colour at render time, and unknown colours are shown as stored. Subject colours appear only as small markers: dots, left bars, chips and progress fills.
+- **Requested colours were adjusted only where WCAG AA required it.** Status text uses the 700 shade of each status hue, because the requested hues fail 4.5:1 on their own tints. `#9CA3AF` is decorative only. Form controls use a 3:1 border (`#8C929C`), while cards keep `#E5E7EB`. The exact ratios are in `docs/TEST_RESULTS.md`.

@@ -1,11 +1,11 @@
 /**
  * Small original line illustrations for empty states. Decorative only (aria-hidden).
- * Strokes use the primary green, soft fills use the mint token, so both themes work.
+ * Strokes use neutral grey and soft fills use the subtle fill token.
  */
 export type IllustrationName = 'sprout' | 'calendar' | 'books' | 'chart' | 'filter' | 'exam' | 'rest';
 
 const S = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
-const F = { fill: 'var(--color-mint-strong)', stroke: 'none' } as const;
+const F = { fill: 'var(--color-fill)', stroke: 'none' } as const;
 
 function Ground() {
   return <path {...S} d="M14 98h132" strokeOpacity={0.35} />;

@@ -2,7 +2,50 @@
 
 Everything below was copied from real command output. Nothing was estimated.
 
-## Latest run: 2026-11-23, 00:21 IST (Asia/Kolkata), after the visual polish pass
+## Latest run: 2026-11-23, 00:31 IST (Asia/Kolkata), after the white light retheme
+
+Command: `npm run verify`, exit code 0. Environment: macOS (Darwin 25.5), Node v24.14.1, npm 11.11.0, Playwright 1.65.1.
+
+```
+--- verify summary ---
+passed (2.0s)      Type check (tsc strict)
+passed (2.2s)      Lint (eslint)
+passed (2.9s)      Unit, property and component tests (vitest)
+passed (0.5s)      Production build (vite)
+passed (16.9s)     End-to-end + accessibility + responsive tests (playwright)
+
+All verification steps passed.
+```
+
+| Step | Result |
+|---|---|
+| Type check | 0 errors |
+| Lint | 0 errors, 0 warnings |
+| Vitest | **16 files, 160 tests passed, 0 failed** (was 191; the dark-theme contrast cases were removed with dark mode) |
+| Build | succeeded |
+| Playwright | **30 tests passed, 0 failed** (unchanged count) |
+
+What changed in the tests:
+
+- `src/styles/tokens.test.ts` now covers the single white theme.
+  - 22 text/background pairs must reach 4.5:1.
+  - 7 non-text pairs must reach 3:1: accent on its track, the focus ring on white and on `#F9FAFB`, form-control borders, and the success, warning and danger hues.
+  - Each of the 8 display subject colours must reach 4.5:1 with white text and 3:1 as a graphic on `#F9FAFB`.
+  - Every stored palette value must map to a distinct display colour, and unknown colours must pass through unchanged.
+  - A final check confirms the CSS has no dark-mode or `data-theme` rules.
+- `e2e/a11y-responsive.spec.ts`: the dark-mode axe test was replaced by a light-only test. With the system set to dark, every screen still has a white (`rgb(255, 255, 255)`) body and passes axe, and Settings has no theme switch.
+
+Contrast decisions forced by WCAG AA (measured with the token test's `contrastRatio`):
+
+- The requested status text colours fail on their own tints: success `#16A34A` on `#F0FDF4` is 3.15:1, warning `#D97706` on `#FFFBEB` is 3.07:1, and danger `#DC2626` on `#FEF2F2` is 4.41:1. Those hues are used for icons, fills and borders. Text uses the 700 shades of the same hue: `#15803D` (4.79:1), `#B45309` (4.84:1) and `#B91C1C` (5.91:1).
+- `#9CA3AF` (2.54:1 on white) is used only for decoration, never for text. `#6B7280` is 4.39:1 on `#F3F4F6`, so secondary text never sits on that fill; text on it uses `#374151` (9.37:1).
+- Cards use the `#E5E7EB` border (1.24:1). Form controls need a visible boundary of at least 3:1 (WCAG 1.4.11), so they use `#8C929C` (3.13:1).
+
+Screenshots: `docs/screenshots/light/` (1440 and 390 px, plus `*-activity-*` shots taken after completing two sessions). `node scripts/screenshots.mjs docs/screenshots/light --activity` recreates them from a running `npm run preview`.
+
+---
+
+## Earlier run: 2026-11-23, 00:21 IST (Asia/Kolkata), after the visual polish pass
 
 Command: `npm run verify`, exit code 0. Environment: macOS (Darwin 25.5), Node v24.14.1, npm 11.11.0, Playwright 1.65.1. New dependencies: `lucide-react` and `@fontsource-variable/inter` (bundled locally, so the font still works offline).
 

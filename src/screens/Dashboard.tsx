@@ -4,7 +4,7 @@ import { alerts, overview, weeklyBars } from '../domain/progress';
 import { diffDays, formatDate, formatDuration, formatTime, weekdayName, weekdayOf } from '../domain/dates';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
-import { Card, EmptyState, MetricCard, Notice, ProgressBar, ProgressRing, StatusPill, subjectVar } from '../ui/bits';
+import { Card, EmptyState, MetricCard, Notice, ProgressBar, ProgressRing, StatusPill, SubjectDot, subjectVar } from '../ui/bits';
 import { useSessionActions } from './timetable/useSessionActions';
 
 function greeting(minutes: number): string {
@@ -56,7 +56,10 @@ export function Dashboard() {
                   <span className="hero-count-num">{nextDays === 0 ? 'Today' : nextDays}</span>
                   {nextDays > 0 && <span className="hero-count-unit">day{nextDays === 1 ? '' : 's'}</span>}
                 </p>
-                <p className="hero-count-subject">{next.name}</p>
+                <p className="hero-count-subject">
+                  <SubjectDot color={next.color} />
+                  {next.name}
+                </p>
                 <p className="hero-count-date">
                   {formatDate(next.examDate)}
                   {next.examStart != null ? ` · ${formatTime(next.examStart)}` : ''}
@@ -193,7 +196,7 @@ export function Dashboard() {
               ))}
             </div>
             <div className="legend" aria-hidden="true">
-              <span><span className="legend-swatch" style={{ background: 'var(--color-primary)' }} />Completed</span>
+              <span><span className="legend-swatch" style={{ background: 'var(--color-accent)' }} />Completed</span>
               <span><span className="legend-swatch" style={{ background: 'var(--color-track)' }} />Planned</span>
             </div>
             <figcaption className="sr-only">Study time this week (completed of planned):</figcaption>

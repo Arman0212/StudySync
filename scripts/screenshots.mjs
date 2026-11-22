@@ -1,12 +1,13 @@
 // Captures full-page screenshots of every screen with demo data loaded.
-// Usage: node scripts/screenshots.mjs <out-dir> [--dark]
+// Usage: node scripts/screenshots.mjs <out-dir> [--activity]
+// --activity also completes two of today's sessions and captures the dashboard and progress again.
 // Expects the production build to be served at http://localhost:4173 (npm run build && npm run preview).
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const out = process.argv[2] ?? 'docs/screenshots/after';
-const withDark = process.argv.includes('--dark');
+const out = process.argv[2] ?? 'docs/screenshots/light';
+const withActivity = process.argv.includes('--activity');
 const base = process.env.BASE_URL ?? 'http://localhost:4173/';
 mkdirSync(out, { recursive: true });
 
@@ -25,12 +26,11 @@ const SCREENS = [
 ];
 
 const browser = await chromium.launch();
-const schemes = withDark ? ['light', 'dark'] : ['light'];
-for (const scheme of schemes) {
+{
   for (const width of [1440, 390]) {
-    const ctx = await browser.newContext({ viewport: { width, height: width > 600 ? 900 : 844 }, colorScheme: scheme, timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce' });
+    const ctx = await browser.newContext({ viewport: { width, height: width > 600 ? 900 : 844 }, timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce' });
     const page = await ctx.newPage();
-    const suffix = `${width}${scheme === 'dark' ? '-dark' : ''}`;
+    const suffix = `${width}`;
     await page.goto(base);
     await page.evaluate(() => localStorage.clear());
     await page.goto(base);
@@ -47,7 +47,7 @@ for (const scheme of schemes) {
       await page.waitForTimeout(250);
       await page.screenshot({ path: join(out, `${name}-${suffix}.png`), fullPage: true });
     }
-    if (withDark) {
+    if (withActivity) {
       // Complete two of today's sessions to show the check animation result, ring and heatmap.
       await page.goto(`${base}#/dashboard`);
       for (let i = 0; i < 2; i++) {
@@ -67,7 +67,7 @@ for (const scheme of schemes) {
       await page.screenshot({ path: join(out, `progress-activity-${suffix}.png`), fullPage: true });
     }
     await ctx.close();
-    console.log(`captured ${scheme} @ ${width}px`);
+    console.log(`captured @ ${width}px`);
   }
 }
 await browser.close();

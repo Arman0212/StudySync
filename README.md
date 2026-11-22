@@ -51,13 +51,15 @@ Built for **SCSE4041 Prompt Engineering** by team **Doppelgängers (PE-B25-53)**
   - Autosave with a "Saved HH:MM" indicator.
   - Stored data carries a schema version and old versions are migrated. If saved data is damaged, a recovery screen keeps a raw backup, offers it as a download and never overwrites it silently.
 - **Look and feel:**
-  - A botanical green design system with light and dark themes built from the same tokens. Dark mode follows the system setting, and Settings has a System / Light / Dark switch.
+  - A clean white, light-only design: white and grey surfaces with a single indigo accent (`#4F46E5`) for primary buttons, the active navigation item, focus rings, links and progress.
+  - Status colours are soft and semantic. Eight muted subject colours are used only as small markers: left bars, dots, chips and progress fills.
+  - All colours come from the tokens in `src/styles/tokens.ts`.
   - Inter is bundled locally, so it works offline. Times and stats use tabular numbers.
   - lucide icons, progress rings and a calendar-style week view with a "now" line.
   - A study heatmap built from completed sessions, and original line illustrations for empty states.
   - Short hover, press, check and toast animations, which turn off when the system asks for reduced motion.
-  - Screenshots are in [`docs/screenshots/`](docs/screenshots/).
-- **Accessibility:** keyboard-friendly, with visible focus, a skip link, landmarks, labels on every input, and status shown as icon plus text. Checked with axe in both light and dark themes. Contrast is tested against WCAG AA for every token pair in both themes.
+  - Current screenshots are in [`docs/screenshots/light/`](docs/screenshots/light/). The `before/` and `after/` folders are from the earlier green-theme pass.
+- **Accessibility:** keyboard-friendly, with visible focus, a skip link, landmarks, labels on every input, and status shown as icon plus text. Checked with axe, including with the system set to dark mode (the app stays light). Every text/background token pair is tested against WCAG AA (4.5:1), and focus rings, control borders and progress fills against 3:1.
 - **Responsive layout:** a sidebar on desktop, and a top bar plus bottom navigation on phones. Tested with no horizontal scrolling at 360, 390, 768, 1024 and 1440 px wide.
 
 ## Prerequisites

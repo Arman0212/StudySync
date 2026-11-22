@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useApp } from '../../state/store';
 import type { Subject } from '../../domain/types';
 import { SUBJECT_COLORS } from '../../domain/types';
+import { SUBJECT_OPTIONS } from '../../ui/subjectColors';
 import { validateSubject, subjectWarnings, hasErrors, type Errors } from '../../domain/validation';
 import { formatTime, parseTime } from '../../domain/dates';
 import { newId } from '../../state/ids';
@@ -77,7 +78,7 @@ export function SubjectForm({ subject, onDone }: { subject?: Subject; onDone?: (
       <fieldset className="choice-group">
         <legend className="field-label">Colour</legend>
         <div className="choice-row" role="radiogroup" aria-label="Subject colour">
-          {SUBJECT_COLORS.map((c) => (
+          {SUBJECT_OPTIONS.map((c) => (
             <button
               key={c.value}
               type="button"
@@ -86,7 +87,7 @@ export function SubjectForm({ subject, onDone }: { subject?: Subject; onDone?: (
               aria-label={c.name}
               title={c.name}
               className="color-swatch"
-              style={{ background: c.value }}
+              style={{ background: c.color }}
               onClick={() => setD({ ...d, color: c.value })}
             >
               {d.color === c.value && <Icon name="check" size={18} />}

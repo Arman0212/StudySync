@@ -9,8 +9,6 @@ import { Card, Notice, PageHeader } from '../ui/bits';
 import { TextField } from '../ui/Field';
 import { useToast } from '../ui/Toast';
 import { downloadText } from '../ui/download';
-import { Icon } from '../ui/Icon';
-import { useTheme, type ThemePref } from '../ui/theme';
 import { ProfileForm } from './setup/ProfileForm';
 import { AvailabilityForm } from './setup/AvailabilityForm';
 
@@ -106,39 +104,6 @@ export function ResetData() {
   );
 }
 
-const THEMES: { id: ThemePref; label: string; icon: string; hint: string }[] = [
-  { id: 'system', label: 'System', icon: 'monitor', hint: 'Match your device' },
-  { id: 'light', label: 'Light', icon: 'sun', hint: 'Always light' },
-  { id: 'dark', label: 'Dark', icon: 'moon', hint: 'Always dark' },
-];
-
-export function Appearance() {
-  const { store } = useApp();
-  const [theme, setTheme] = useTheme(store);
-  return (
-    <Card title="Appearance" icon="palette">
-      <fieldset className="choice-group">
-        <legend className="field-label">Theme</legend>
-        <div className="theme-options">
-          {THEMES.map((t) => (
-            <label key={t.id} className="theme-option">
-              <input type="radio" name="theme" value={t.id} checked={theme === t.id} onChange={() => setTheme(t.id)} />
-              <span className="theme-option-icon">
-                <Icon name={t.icon} size={20} />
-              </span>
-              <span className="theme-option-text">
-                <span className="theme-option-label">{t.label}</span>
-                <span className="theme-option-hint">{t.hint}</span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <p className="muted small" style={{ marginTop: 12 }}>Saved in this browser only.</p>
-    </Card>
-  );
-}
-
 export function Settings() {
   return (
     <>
@@ -147,13 +112,10 @@ export function Settings() {
         <Card title="Profile" icon="graduation">
           <ProfileForm />
         </Card>
-        <div className="stack-cards">
-          <Appearance />
-          <Card title="Privacy" icon="shield">
-            <p>Your data stays in this browser. StudySync has no account, no server and no analytics, and it never sends your data or prompts anywhere.</p>
-            <p className="muted small">Clearing your browser’s site data will delete it, so export a backup now and then.</p>
-          </Card>
-        </div>
+        <Card title="Privacy" icon="shield">
+          <p>Your data stays in this browser. StudySync has no account, no server and no analytics, and it never sends your data or prompts anywhere.</p>
+          <p className="muted small">Clearing your browser’s site data will delete it, so export a backup now and then.</p>
+        </Card>
       </div>
       <Card title="Study preferences" icon="clock" className="section-gap">
         <AvailabilityForm />

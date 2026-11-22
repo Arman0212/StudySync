@@ -1,183 +1,116 @@
 /**
- * Design tokens — single source of truth. Applied as CSS custom properties at start-up
+ * Design tokens — single source of truth (one white light theme, indigo accent). Applied as CSS custom properties at start-up
  * (see applyTokens) and checked for WCAG AA contrast in tokens.test.ts.
  */
 export const colors = {
-  primary: '#1f5f3f', // deep forest green — primary actions
-  primaryHover: '#174a30',
-  primaryActive: '#123b26',
-  onPrimary: '#ffffff',
-  mint: '#e7f3eb', // soft mint surfaces
-  mintStrong: '#d3eadb',
-  sage: '#8fae98', // decorative accent (borders, bars) — not used for text
-  sageText: '#45644f', // sage tone that is safe for text
-  bg: '#f4f7f3', // off-white page background
-  surface: '#ffffff',
-  surfaceAlt: '#f8faf7', // subtle inset areas (toolbars, calendar gutters)
-  text: '#17241c',
-  textMuted: '#4b5d52',
-  border: '#dde7e0',
-  borderStrong: '#7d9585',
-  focus: '#1f5f3f',
-  track: '#e3ebe5', // empty part of bars and rings
-  neutralSurface: '#eef2ef',
-  neutralText: '#3d4d43',
-  danger: '#b42318',
-  dangerHover: '#912018',
-  onDanger: '#ffffff',
-  dangerSurface: '#fdeceb',
-  warningText: '#7a4b00',
-  warningSurface: '#fff4dc',
-  successText: '#1d6b3c',
-  successSurface: '#e3f3e8',
-  infoText: '#1f4f86',
-  infoSurface: '#e6eef8',
-  inverse: '#17241c', // toasts
-  onInverse: '#ffffff',
-  heroFrom: '#174a30',
-  heroTo: '#1f5f3f',
-  onHero: '#ffffff',
-  onHeroMuted: '#cfe6d8',
-  paper: '#fffdf7', // mock-test prompt card
-  heat1: '#c7e4d0',
-  heat2: '#8cc5a0',
-  heat3: '#4b9a6c',
-  heat4: '#1f5f3f',
+  // Single accent: indigo.
+  accent: '#4F46E5',
+  accentHover: '#4338CA',
+  accentActive: '#3730A3',
+  onAccent: '#FFFFFF',
+  accentSoft: '#EEF2FF', // active nav pill, selected choices
+  accentSoftStrong: '#E0E7FF',
+  accentText: '#4338CA', // accent text on the soft tint
+  // Neutrals.
+  bg: '#FFFFFF',
+  surface: '#FFFFFF',
+  surfaceAlt: '#F9FAFB', // sidebar, table headers, toolbars, input hover
+  fill: '#F3F4F6', // subtle fills (hover, icon tiles, tracks)
+  border: '#E5E7EB',
+  divider: '#F1F2F4',
+  borderControl: '#8C929C', // form-control outlines (3:1 against white, WCAG 1.4.11)
+  text: '#111827',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF', // decorative only (icons, placeholders) — never body text
+  neutralText: '#374151', // text on #F3F4F6 fills
+  focus: '#4F46E5',
+  track: '#E5E7EB', // empty part of bars and rings
+  // Status: the spec hue for icons, fills and borders; a deeper shade of it for text.
+  success: '#16A34A',
+  successText: '#15803D',
+  successSurface: '#F0FDF4',
+  warning: '#D97706',
+  warningText: '#B45309',
+  warningSurface: '#FFFBEB',
+  danger: '#DC2626',
+  dangerHover: '#B91C1C',
+  dangerText: '#B91C1C',
+  onDanger: '#FFFFFF',
+  dangerSurface: '#FEF2F2',
+  info: '#2563EB',
+  infoText: '#2563EB',
+  infoSurface: '#EFF6FF',
+  inverse: '#111827', // toasts, logo mark
+  onInverse: '#FFFFFF',
+  heat1: '#E0E7FF',
+  heat2: '#A5B4FC',
+  heat3: '#6366F1',
+  heat4: '#3730A3',
 } as const;
 
 export type ColorToken = keyof typeof colors;
 
-/** Dark theme: the same tokens, re-tuned for a deep botanical background. */
-export const darkColors: Record<ColorToken, string> = {
-  primary: '#6fcf97',
-  primaryHover: '#88dbaa',
-  primaryActive: '#5bbd84',
-  onPrimary: '#0b1d12',
-  mint: '#1b2d22',
-  mintStrong: '#24402f',
-  sage: '#4f7a5d',
-  sageText: '#9fc8ab',
-  bg: '#0d1410',
-  surface: '#141d17',
-  surfaceAlt: '#18231c',
-  text: '#e5eee8',
-  textMuted: '#a5b8ab',
-  border: '#24332a',
-  borderStrong: '#5f7a68',
-  focus: '#8fe0b0',
-  track: '#25352b',
-  neutralSurface: '#222e27',
-  neutralText: '#c4d2c8',
-  danger: '#f4908a',
-  dangerHover: '#f7a8a3',
-  onDanger: '#2a0b08',
-  dangerSurface: '#351816',
-  warningText: '#f2c46b',
-  warningSurface: '#30260f',
-  successText: '#8fe0b0',
-  successSurface: '#15301f',
-  infoText: '#a6c8f2',
-  infoSurface: '#172538',
-  inverse: '#e5eee8',
-  onInverse: '#0d1410',
-  heroFrom: '#143525',
-  heroTo: '#1c4a33',
-  onHero: '#effaf3',
-  onHeroMuted: '#b9d8c4',
-  paper: '#1a241e',
-  heat1: '#1f4a31',
-  heat2: '#2d7048',
-  heat3: '#4ea672',
-  heat4: '#8fe0b0',
-};
-
 export const space = { 1: '8px', 2: '16px', 3: '24px', 4: '32px', 5: '40px', 6: '48px', half: '4px' } as const;
-export const radius = { sm: '8px', md: '12px', lg: '18px', pill: '999px' } as const;
+export const radius = { sm: '6px', md: '8px', lg: '12px', pill: '999px' } as const;
 export const shadow = {
-  card: '0 1px 2px rgba(23, 36, 28, 0.04), 0 2px 6px rgba(23, 36, 28, 0.04), 0 8px 24px -12px rgba(23, 36, 28, 0.10)',
-  hover: '0 1px 2px rgba(23, 36, 28, 0.05), 0 6px 14px rgba(23, 36, 28, 0.07), 0 16px 32px -16px rgba(23, 36, 28, 0.16)',
-  raised: '0 2px 4px rgba(23, 36, 28, 0.06), 0 12px 32px rgba(23, 36, 28, 0.16)',
+  card: '0 1px 2px rgba(0, 0, 0, 0.04)',
+  hover: '0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06)',
+  raised: '0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 16px 32px -8px rgba(0, 0, 0, 0.14)',
 } as const;
-export const darkShadow: Record<keyof typeof shadow, string> = {
-  card: '0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.45)',
-  hover: '0 2px 4px rgba(0, 0, 0, 0.4), 0 16px 32px -16px rgba(0, 0, 0, 0.6)',
-  raised: '0 4px 8px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.55)',
-};
 export const font = {
   family: "'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
 } as const;
 
-/** Text/background pairs that must meet WCAG AA (4.5:1 for normal text) in both themes. */
+/** Text/background pairs that must meet WCAG AA (4.5:1 for normal text). */
 export const contrastPairs: [ColorToken, ColorToken][] = [
   ['text', 'bg'],
-  ['text', 'surface'],
   ['text', 'surfaceAlt'],
-  ['text', 'mint'],
-  ['textMuted', 'bg'],
-  ['textMuted', 'surface'],
-  ['textMuted', 'surfaceAlt'],
-  ['textMuted', 'mint'],
-  ['onPrimary', 'primary'],
-  ['onPrimary', 'primaryHover'],
-  ['onPrimary', 'primaryActive'],
-  ['primary', 'surface'],
-  ['primary', 'surfaceAlt'],
-  ['primary', 'mint'],
-  ['primary', 'bg'],
-  ['sageText', 'surface'],
-  ['sageText', 'mint'],
-  ['neutralText', 'neutralSurface'],
+  ['text', 'fill'],
+  ['textSecondary', 'surface'],
+  ['textSecondary', 'surfaceAlt'],
+  ['neutralText', 'fill'],
+  ['onAccent', 'accent'],
+  ['onAccent', 'accentHover'],
+  ['onAccent', 'accentActive'],
+  ['accent', 'surface'],
+  ['accent', 'surfaceAlt'],
+  ['accent', 'fill'],
+  ['accentText', 'accentSoft'],
+  ['accent', 'accentSoft'],
   ['onDanger', 'danger'],
   ['onDanger', 'dangerHover'],
   ['danger', 'surface'],
-  ['danger', 'dangerSurface'],
+  ['dangerText', 'dangerSurface'],
   ['warningText', 'warningSurface'],
   ['successText', 'successSurface'],
   ['infoText', 'infoSurface'],
   ['onInverse', 'inverse'],
-  ['onHero', 'heroFrom'],
-  ['onHero', 'heroTo'],
-  ['onHeroMuted', 'heroFrom'],
-  ['onHeroMuted', 'heroTo'],
-  ['text', 'paper'],
-  ['textMuted', 'paper'],
 ];
 
-/** Non-text graphics (rings, bars, focus outlines) need 3:1 against their surroundings. */
+/** Non-text graphics (rings, bars, focus outlines, control borders) need 3:1. */
 export const graphicPairs: [ColorToken, ColorToken][] = [
-  ['primary', 'track'],
+  ['accent', 'track'],
   ['focus', 'surface'],
-  ['focus', 'bg'],
-  ['borderStrong', 'surface'],
+  ['focus', 'surfaceAlt'],
+  ['borderControl', 'surface'],
+  ['success', 'surface'],
+  ['warning', 'surface'],
+  ['danger', 'surface'],
 ];
 
 function toKebab(s: string): string {
   return s.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 }
 
-function vars(c: Record<string, string>, sh: Record<string, string>): string {
-  const lines: string[] = [];
-  for (const [k, v] of Object.entries(c)) lines.push(`--color-${toKebab(k)}: ${v};`);
-  for (const [k, v] of Object.entries(sh)) lines.push(`--shadow-${k}: ${v};`);
-  return lines.join('');
-}
-
-/**
- * Light tokens on :root; dark tokens when the system prefers dark (unless the user picked
- * light in Settings) or when the user explicitly picked dark (data-theme="dark").
- */
+/** The app has a single light theme; tokens are emitted once on :root. */
 export function tokenCss(): string {
-  const base: string[] = [];
-  for (const [k, v] of Object.entries(space)) base.push(`--space-${k}: ${v};`);
-  for (const [k, v] of Object.entries(radius)) base.push(`--radius-${k}: ${v};`);
-  base.push(`--font-family: ${font.family};`);
-  const light = vars(colors, shadow);
-  const dark = vars(darkColors, darkShadow);
-  return [
-    `:root{${base.join('')}${light}--subject-lift: 0%;color-scheme: light;}`,
-    `@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${dark}--subject-lift: 28%;color-scheme: dark;}}`,
-    `:root[data-theme="dark"]{${dark}--subject-lift: 28%;color-scheme: dark;}`,
-  ].join('\n');
+  const lines: string[] = [];
+  for (const [k, v] of Object.entries(colors)) lines.push(`--color-${toKebab(k)}: ${v};`);
+  for (const [k, v] of Object.entries(shadow)) lines.push(`--shadow-${k}: ${v};`);
+  for (const [k, v] of Object.entries(space)) lines.push(`--space-${k}: ${v};`);
+  for (const [k, v] of Object.entries(radius)) lines.push(`--radius-${k}: ${v};`);
+  lines.push(`--font-family: ${font.family};`);
+  return `:root{${lines.join('')}color-scheme: light;}`;
 }
 
 export function applyTokens(doc: Document): void {

@@ -2,6 +2,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import type { SessionStatus, TopicStatus } from '../domain/types';
 import { Icon } from './Icon';
 import { Illustration, type IllustrationName } from './Illustration';
+import { displaySubjectColor } from './subjectColors';
 
 const SESSION_LABEL: Record<SessionStatus, { label: string; icon: string }> = {
   planned: { label: 'Planned', icon: 'clock' },
@@ -20,8 +21,8 @@ export const sessionStatusLabel = (s: SessionStatus) => SESSION_LABEL[s].label;
 export const sessionStatusIcon = (s: SessionStatus) => SESSION_LABEL[s].icon;
 export const topicStatusLabel = (s: TopicStatus) => TOPIC_LABEL[s].label;
 
-/** CSS variable carrying a subject colour; the stylesheet lifts it in dark mode. */
-export const subjectVar = (color: string | undefined): CSSProperties => ({ ['--subject' as string]: color ?? 'var(--color-sage)' });
+/** CSS variable carrying a subject's display colour (see subjectColors.ts). */
+export const subjectVar = (color: string | undefined): CSSProperties => ({ ['--subject' as string]: displaySubjectColor(color) ?? 'var(--color-text-muted)' });
 
 /**
  * Status is always conveyed by icon + text, never by colour alone. When a pill changes to
