@@ -11,3 +11,5 @@ studysync.zip
 .env.*
 *.local
 .vite/
+studysync.zip
+.loop/run.log
