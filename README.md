@@ -161,7 +161,11 @@ ESLint enforces the architecture rules. Code in `domain/` and `scheduling/` cann
 
 ## Deployment
 
-The app is a static build (`dist/`). It uses hash routing and relative asset paths, so it works at any URL with no server rewrites. **It has not been deployed by the build process; you need your own account for each option below.**
+StudySync is a frontend web application built using React, TypeScript and Vite. It can be deployed on static hosting platforms such as Vercel, Netlify or GitHub Pages.
+
+The project repository is maintained on GitHub, while the deployment platform can be selected according to the team's requirements.
+
+For deployment, generate a production build using npm run build. The resulting dist/ directory contains the static files required for hosting.
 
 ### Vercel
 1. Push the repository to GitHub, GitLab or Bitbucket.
