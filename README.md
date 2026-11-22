@@ -50,7 +50,14 @@ Built for **SCSE4041 Prompt Engineering** by team **Doppelgängers (PE-B25-53)**
   - A privacy note.
   - Autosave with a "Saved HH:MM" indicator.
   - Stored data carries a schema version and old versions are migrated. If saved data is damaged, a recovery screen keeps a raw backup, offers it as a download and never overwrites it silently.
-- **Accessibility:** keyboard-friendly, with visible focus, a skip link, landmarks, labels on every input, and status shown as icon plus text. Checked with axe. Contrast is tested against WCAG AA.
+- **Look and feel:**
+  - A botanical green design system with light and dark themes built from the same tokens. Dark mode follows the system setting, and Settings has a System / Light / Dark switch.
+  - Inter is bundled locally, so it works offline. Times and stats use tabular numbers.
+  - lucide icons, progress rings and a calendar-style week view with a "now" line.
+  - A study heatmap built from completed sessions, and original line illustrations for empty states.
+  - Short hover, press, check and toast animations, which turn off when the system asks for reduced motion.
+  - Screenshots are in [`docs/screenshots/`](docs/screenshots/).
+- **Accessibility:** keyboard-friendly, with visible focus, a skip link, landmarks, labels on every input, and status shown as icon plus text. Checked with axe in both light and dark themes. Contrast is tested against WCAG AA for every token pair in both themes.
 - **Responsive layout:** a sidebar on desktop, and a top bar plus bottom navigation on phones. Tested with no horizontal scrolling at 360, 390, 768, 1024 and 1440 px wide.
 
 ## Prerequisites

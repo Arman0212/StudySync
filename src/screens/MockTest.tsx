@@ -46,7 +46,7 @@ export function MockTest() {
     return (
       <>
         <PageHeader title="Mock-test prompt builder" />
-        <EmptyState title="Add a subject first" action={<a className="btn btn-primary" href="#/setup/subjects">Add subjects</a>}>The builder writes a prompt based on your subjects and topics.</EmptyState>
+        <EmptyState title="Add a subject first" illustration="exam" action={<a className="btn btn-primary" href="#/setup/subjects">Add subjects</a>}>The builder writes a prompt based on your subjects and topics.</EmptyState>
       </>
     );
   }
@@ -87,8 +87,8 @@ export function MockTest() {
           <strong>StudySync does not generate questions or contact any AI.</strong> It only writes a prompt for you to copy into an assistant of your choice. The questions and grading come from that assistant, so check them against your course material.
         </p>
       </Notice>
-      <div className="grid-2" style={{ marginTop: 16 }}>
-        <Card title="Settings">
+      <div className="mock-layout">
+        <Card title="Settings" icon="settings" className="mock-settings">
           <div className="form">
             <SelectField label="Subject" required value={config.subjectId} onChange={(e) => setSubject(e.target.value)}>
               {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -138,11 +138,20 @@ export function MockTest() {
             <p className="muted small">Your settings are saved automatically for next time.</p>
           </div>
         </Card>
-        <Card title="Your prompt">
-          <FieldShell label="Prompt text (you can edit it)" hint={valid ? undefined : 'Fix the settings on the left to get a complete prompt.'}>
-            {({ id, describedBy }) => <textarea ref={areaRef} id={id} aria-describedby={describedBy} className="input textarea prompt-area" value={text} onChange={(e) => setText(e.target.value)} />}
-          </FieldShell>
-          <div className="row" style={{ marginTop: 12 }}>
+        <Card title="Your prompt" icon="file" className="prompt-card">
+          <div className="paper">
+            <div className="paper-head" aria-hidden="true">
+              <span className="paper-chip">{subject.name}</span>
+              <span className="paper-meta">
+                {config.questionCount || '–'} questions · {config.difficulty}
+                {config.timeLimitMinutes ? ` · ${config.timeLimitMinutes} min` : ''}
+              </span>
+            </div>
+            <FieldShell label="Prompt text (you can edit it)" hint={valid ? undefined : 'Fix the settings to get a complete prompt.'}>
+              {({ id, describedBy }) => <textarea ref={areaRef} id={id} aria-describedby={describedBy} className="input textarea prompt-area" value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} />}
+            </FieldShell>
+          </div>
+          <div className="row prompt-actions">
             <Button variant="primary" icon="copy" onClick={() => void copy()} disabled={!valid}>Copy</Button>
             <Button variant="secondary" icon="download" disabled={!valid} onClick={() => { downloadText(`studysync-mock-test-${subject.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.txt`, text); toast.show('Prompt downloaded'); }}>Download .txt</Button>
             <Button variant="ghost" icon="redo" onClick={() => { setText(generated); setManualCopy(false); toast.show('Prompt reset', 'info'); }}>Reset</Button>
@@ -193,7 +202,7 @@ function ScoreEntry({ subjectId }: { subjectId: string }) {
     });
 
   return (
-    <Card title={`Record a mock-test score${subject ? ` for ${subject.name}` : ''} (optional)`}>
+    <Card title={`Record a mock-test score${subject ? ` for ${subject.name}` : ''} (optional)`} icon="target" className="section-gap">
       <p className="muted">After you’ve taken the test elsewhere, paste the score the assistant gave you. It feeds the optional readiness indicator.</p>
       <div className="form-grid">
         <TextField label="Overall score (%)" type="number" min={0} max={100} value={score} onChange={(e) => setScore(e.target.value)} error={error} />
@@ -202,7 +211,7 @@ function ScoreEntry({ subjectId }: { subjectId: string }) {
         ))}
       </div>
       <div className="form-actions" style={{ marginTop: 12 }}>
-        <Button variant="primary" onClick={save} disabled={busy}>Save score</Button>
+        <Button variant="primary" icon="check" onClick={save} disabled={busy}>Save score</Button>
       </div>
     </Card>
   );

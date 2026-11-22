@@ -34,7 +34,7 @@ export function Setup({ tab }: { tab?: string | undefined }) {
         </div>
       </nav>
       {active === 'profile' && (
-        <Card title="Your profile">
+        <Card title="Your profile" icon="graduation">
           {!data.profile && <Notice>Start by creating a profile. Only the plan start date is required.</Notice>}
           <div style={{ marginTop: 16 }}>
             <ProfileForm submitLabel={data.profile ? 'Save profile' : 'Create profile and continue'} onSaved={() => navigate('/setup/availability')} />
@@ -42,7 +42,7 @@ export function Setup({ tab }: { tab?: string | undefined }) {
         </Card>
       )}
       {active === 'availability' && (
-        <Card title="When can you study?">
+        <Card title="When can you study?" icon="clock">
           <AvailabilityForm onSaved={() => navigate('/setup/commitments')} />
         </Card>
       )}

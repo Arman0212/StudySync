@@ -7,6 +7,7 @@ interface ToastItem {
   kind: Kind;
   message: string;
   action?: { label: string; onClick: () => void } | undefined;
+  leaving?: boolean;
 }
 
 interface ToastApi {
@@ -18,7 +19,11 @@ const ToastContext = createContext<ToastApi>({ show: () => undefined });
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const next = useRef(1);
-  const dismiss = useCallback((id: number) => setItems((l) => l.filter((t) => t.id !== id)), []);
+  // Mark as leaving first so the exit transition can play, then remove.
+  const dismiss = useCallback((id: number) => {
+    setItems((l) => l.map((t) => (t.id === id ? { ...t, leaving: true } : t)));
+    setTimeout(() => setItems((l) => l.filter((t) => t.id !== id)), 180);
+  }, []);
   const show = useCallback<ToastApi['show']>(
     (message, kind = 'success', action) => {
       const id = next.current++;
@@ -33,8 +38,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toasts" role="status" aria-live="polite">
         {items.map((t) => (
-          <div key={t.id} className={`toast toast-${t.kind}`}>
-            <Icon name={t.kind === 'error' ? 'alert' : t.kind === 'info' ? 'info' : 'check'} />
+          <div key={t.id} className={`toast toast-${t.kind}${t.leaving ? ' toast-leaving' : ''}`}>
+            <span className="toast-icon">
+              <Icon name={t.kind === 'error' ? 'alert' : t.kind === 'info' ? 'info' : 'checkCircle'} />
+            </span>
             <span className="toast-text">
               <span className="sr-only">{t.kind === 'error' ? 'Error: ' : t.kind === 'success' ? 'Success: ' : 'Note: '}</span>
               {t.message}

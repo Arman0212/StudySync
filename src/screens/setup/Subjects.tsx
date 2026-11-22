@@ -25,11 +25,11 @@ export function Subjects() {
 
   return (
     <div className="stack">
-      <Card title="Add a subject">
+      <Card title="Add a subject" icon="plus">
         <SubjectForm />
       </Card>
       {sorted.length === 0 ? (
-        <EmptyState title="No subjects yet">Add your first subject above with its exam date, then add the topics you need to study.</EmptyState>
+        <EmptyState compact illustration="books" title="No subjects yet">Add your first subject above with its exam date, then add the topics you need to study.</EmptyState>
       ) : (
         sorted.map((s) => {
           const topics = data.topics.filter((t) => t.subjectId === s.id).sort((a, b) => a.order - b.order);
@@ -59,7 +59,7 @@ export function Subjects() {
               </p>
               {data.profile && s.examDate < data.profile.planStart && <Notice level="warning">This exam is before your plan start ({formatDate(data.profile.planStart)}), so nothing can be scheduled for it.</Notice>}
               {topics.length === 0 ? (
-                <EmptyState title="No topics yet" action={<Button variant="primary" size="sm" icon="plus" onClick={() => setAddTopicFor(s)}>Add the first topic</Button>}>
+                <EmptyState compact illustration="sprout" title="No topics yet" action={<Button variant="primary" size="sm" icon="plus" onClick={() => setAddTopicFor(s)}>Add the first topic</Button>}>
                   Break {s.name} into topics so StudySync can plan sessions for each one.
                 </EmptyState>
               ) : (

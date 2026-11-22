@@ -37,6 +37,29 @@ test.describe('accessibility (axe)', () => {
     }
   });
 
+  test('every main screen in dark mode (system setting and Settings toggle)', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await loadDemo(page);
+    for (const s of SCREENS) {
+      await page.goto(`./#/${s}`);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await axe(page);
+    }
+    await page.goto('./#/timetable');
+    await page.getByRole('button', { name: 'Week', exact: true }).click();
+    await axe(page);
+    // The explicit toggle overrides the system setting and persists across reloads.
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('./#/settings');
+    await page.getByRole('radio', { name: /Dark/ }).check();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await axe(page);
+    await page.getByRole('radio', { name: /System/ }).check();
+    await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
+  });
+
   test('empty states and dialogs', async ({ page }) => {
     const today = await browserToday(page);
     await seed(page, { today, subjects: [], topics: [] });

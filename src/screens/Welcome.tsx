@@ -6,6 +6,7 @@ import { newId } from '../state/ids';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Logo } from '../ui/Logo';
+import { Illustration } from '../ui/Illustration';
 import { ConfirmDialog } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 
@@ -27,24 +28,29 @@ export function Welcome() {
   return (
     <main id="main" className="welcome">
       <div className="welcome-hero">
-        <Logo />
-        <h1 style={{ marginTop: 24 }}>Welcome to StudySync</h1>
-        <p className="muted">Turn a busy exam season into a calm, realistic day-by-day study plan.</p>
+        <div className="welcome-top">
+          <div>
+            <Logo />
+            <h1 className="welcome-title">Welcome to StudySync</h1>
+            <p className="welcome-lead">Turn a busy exam season into a calm, realistic day-by-day study plan.</p>
+          </div>
+          <Illustration name="calendar" className="welcome-art" />
+        </div>
         <ul className="welcome-points">
-          <li><Icon name="check" /> Tell us your subjects, exam dates and topics, and when you can study.</li>
-          <li><Icon name="check" /> Get a timetable that respects your hours, breaks and commitments — and adapts when you miss a session.</li>
-          <li><Icon name="check" /> See honest progress and build mock-test prompts to paste into ChatGPT or Claude.</li>
-          <li><Icon name="info" /> Works offline. No account, no login — your data stays in this browser.</li>
+          <li><span className="welcome-point-icon"><Icon name="layers" /></span> Tell us your subjects, exam dates and topics, and when you can study.</li>
+          <li><span className="welcome-point-icon"><Icon name="calendar" /></span> Get a timetable that respects your hours, breaks and commitments — and adapts when you miss a session.</li>
+          <li><span className="welcome-point-icon"><Icon name="progress" /></span> See honest progress and build mock-test prompts to paste into ChatGPT or Claude.</li>
+          <li><span className="welcome-point-icon"><Icon name="offline" /></span> Works offline. No account, no login — your data stays in this browser.</li>
         </ul>
         <div className="row">
           <Button variant="primary" icon="plus" onClick={() => navigate('/setup/profile')}>
             Create my plan
           </Button>
-          <Button variant="secondary" onClick={() => setConfirmDemo(true)}>
+          <Button variant="secondary" icon="sparkles" onClick={() => setConfirmDemo(true)}>
             Load demo data
           </Button>
         </div>
-        <p className="muted small" style={{ marginTop: 16 }}>Demo data is fictional and clearly labelled. You can reset it at any time.</p>
+        <p className="muted small welcome-foot">Demo data is fictional and clearly labelled. You can reset it at any time.</p>
       </div>
       {confirmDemo && (
         <ConfirmDialog

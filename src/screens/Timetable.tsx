@@ -15,6 +15,7 @@ import { Card, EmptyState, Notice, PageHeader, SubjectDot, sessionStatusLabel } 
 import { useToast } from '../ui/Toast';
 import { SessionCard } from './timetable/SessionCard';
 import { useSessionActions } from './timetable/useSessionActions';
+import { WeekCalendar } from './timetable/WeekCalendar';
 
 type View = 'day' | 'week' | 'list';
 const STATUSES: SessionStatus[] = ['planned', 'in_progress', 'completed', 'missed', 'rescheduled'];
@@ -107,7 +108,7 @@ export function Timetable() {
       />
 
       {nothingToPlan && (
-        <EmptyState title="Nothing to plan yet" action={<Button variant="primary" onClick={() => navigate('/setup/subjects')}>Add subjects and topics</Button>}>
+        <EmptyState title="Nothing to plan yet" illustration="books" action={<Button variant="primary" onClick={() => navigate('/setup/subjects')}>Add subjects and topics</Button>}>
           Add at least one subject with a topic, then generate your timetable.
         </EmptyState>
       )}
@@ -115,7 +116,7 @@ export function Timetable() {
       {data.conflicts.length > 0 && <ConflictList />}
 
       {!nothingToPlan && data.sessions.length === 0 && (
-        <EmptyState title="No sessions yet" action={<Button variant="primary" onClick={openPreview}>Generate my plan</Button>}>
+        <EmptyState title="No sessions yet" illustration="calendar" action={<Button variant="primary" onClick={openPreview}>Generate my plan</Button>}>
           StudySync will spread your topics across your free time before each exam.
         </EmptyState>
       )}
@@ -157,11 +158,11 @@ export function Timetable() {
           {view === 'day' && (
             <section aria-label={`Sessions on ${formatDate(date, { year: true })}`}>
               <div className="day-head">
-                <h2>{formatDate(date, { year: true })}{date === now.date ? ' (today)' : ''}</h2>
+                <h2 className="day-title">{formatDate(date, { year: true })}{date === now.date && <> <span className="today-chip">Today</span></>}</h2>
                 {dayTotal(date)}
               </div>
               {filtered.filter((s) => s.date === date).length === 0 ? (
-                <EmptyState title="No sessions on this day">Use the arrows to move between days, or regenerate your plan.</EmptyState>
+                <EmptyState compact illustration="rest" title="No sessions on this day">Use the arrows to move between days, or regenerate your plan.</EmptyState>
               ) : (
                 filtered.filter((s) => s.date === date).map((s) => card(s))
               )}
@@ -171,25 +172,25 @@ export function Timetable() {
           {view === 'week' && (
             <section aria-label="Week view">
               <h2 className="sr-only">Week of {formatDate(startOfWeek(date), { year: true })}</h2>
-              <div className="week-grid">
-                {dateRange(startOfWeek(date), addDays(startOfWeek(date), 6)).map((d) => {
-                  const list = filtered.filter((s) => s.date === d);
-                  return (
-                    <div key={d} className={`week-day ${d === now.date ? 'week-day-today' : ''}`}>
-                      <h3>{formatDate(d)}{d === now.date ? ' · today' : ''}</h3>
-                      {dayTotal(d)}
-                      {list.length === 0 && <p className="muted small">No sessions</p>}
-                      {list.map((s) => (
-                        <button key={s.id} type="button" className="week-session" style={{ borderLeftColor: subjectById.get(s.subjectId)?.color }} onClick={() => setDetail(s)}>
-                          <strong>{formatTime(s.start)}</strong> {topicById.get(s.topicId)?.title}
-                          <br />
-                          <span className="muted">{sessionStatusLabel(s.status)}{s.locked ? ' · locked' : ''}</span>
-                        </button>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
+              <p className="cal-caption">
+                <span className="cal-range">
+                  {formatDate(startOfWeek(date), { weekday: false })} – {formatDate(addDays(startOfWeek(date), 6), { weekday: false, year: true })}
+                </span>
+                <span className="muted small">Daily max {formatDuration(data.availability.dailyMaxMinutes)} · select a session for details</span>
+              </p>
+              {filtered.filter((s) => s.date >= startOfWeek(date) && s.date <= addDays(startOfWeek(date), 6)).length === 0 && (
+                <p className="muted small cal-empty-note">No sessions this week{subjectFilter || statusFilter ? ' with these filters' : ''}.</p>
+              )}
+              <WeekCalendar
+                days={dateRange(startOfWeek(date), addDays(startOfWeek(date), 6))}
+                sessions={filtered}
+                subjectById={subjectById}
+                topicById={topicById}
+                today={now.date}
+                nowMinutes={now.minutes}
+                availability={data.availability}
+                onOpen={setDetail}
+              />
             </section>
           )}
 
@@ -197,12 +198,12 @@ export function Timetable() {
             <section aria-label="Session list">
               <h2 className="sr-only">All sessions</h2>
               {filtered.length === 0 ? (
-                <EmptyState title="No sessions match these filters">Clear a filter to see more sessions.</EmptyState>
+                <EmptyState compact illustration="filter" title="No sessions match these filters">Clear a filter to see more sessions.</EmptyState>
               ) : (
                 groupByDate(filtered).map(([d, list]) => (
-                  <div key={d} style={{ marginBottom: 16 }}>
+                  <div key={d} className="day-group">
                     <div className="day-head">
-                      <h3>{formatDate(d, { year: true })}{d === now.date ? ' (today)' : ''}</h3>
+                      <h3 className="day-title">{formatDate(d, { year: true })}{d === now.date && <> <span className="today-chip">Today</span></>}</h3>
                       {dayTotal(d)}
                     </div>
                     {list.map((s) => card(s))}
@@ -309,7 +310,7 @@ function PlanPreview({ preview, onCancel, onConfirm }: { preview: { plan: PlanRe
 function ConflictList() {
   const { data } = useApp();
   return (
-    <Card title="Capacity conflicts" className="card-conflicts">
+    <Card title="Capacity conflicts" icon="alert" className="card-conflicts">
       <Notice level="danger">
         <p>Some work doesn’t fit before its exam. It is listed here so nothing is hidden.</p>
       </Notice>

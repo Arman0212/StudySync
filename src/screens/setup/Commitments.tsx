@@ -67,7 +67,7 @@ export function Commitments() {
 
   return (
     <div className="grid-2">
-      <Card title={editing ? 'Edit commitment' : 'Add a commitment'}>
+      <Card title={editing ? 'Edit commitment' : 'Add a commitment'} icon="calendarClock">
         <p className="muted">Lectures, labs, commute, tuition, work — anything that blocks study time.</p>
         <form className="form" onSubmit={submit} noValidate aria-label="Commitment">
           <TextField label="Label" required value={draft.label} placeholder="e.g. Physics lecture" onChange={(e) => setDraft({ ...draft, label: e.target.value })} error={errors.label} />
@@ -100,9 +100,9 @@ export function Commitments() {
           </div>
         </form>
       </Card>
-      <Card title="Your commitments">
+      <Card title="Your commitments" icon="calendar">
         {data.commitments.length === 0 ? (
-          <EmptyState title="No commitments yet">Add your lectures, labs or commute so study sessions never clash with them.</EmptyState>
+          <EmptyState compact illustration="calendar" title="No commitments yet">Add your lectures, labs or commute so study sessions never clash with them.</EmptyState>
         ) : (
           <ul className="list" aria-label="Commitments">
             {data.commitments.map((c) => (

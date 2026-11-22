@@ -9,6 +9,8 @@ import { Card, Notice, PageHeader } from '../ui/bits';
 import { TextField } from '../ui/Field';
 import { useToast } from '../ui/Toast';
 import { downloadText } from '../ui/download';
+import { Icon } from '../ui/Icon';
+import { useTheme, type ThemePref } from '../ui/theme';
 import { ProfileForm } from './setup/ProfileForm';
 import { AvailabilityForm } from './setup/AvailabilityForm';
 
@@ -38,7 +40,7 @@ export function ImportExport({ importOnly = false }: { importOnly?: boolean } = 
   };
 
   return (
-    <Card title={importOnly ? 'Import a backup file' : 'Export and import'}>
+    <Card title={importOnly ? 'Import a backup file' : 'Export and import'} icon="drive">
       <p className="muted">{importOnly ? 'If you have an exported StudySync file, you can restore it instead.' : 'Download everything as a JSON file to back it up or move it to another browser.'}</p>
       <div className="row">
         {!importOnly && <Button variant="secondary" icon="download" onClick={() => { downloadText(`studysync-backup-${now.date}.json`, exportJson(data, clock().toISOString()), 'application/json'); toast.show('Export downloaded'); }}>
@@ -77,7 +79,7 @@ export function ResetData() {
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState('');
   return (
-    <Card title="Reset all data">
+    <Card title="Reset all data" icon="trash">
       <p className="muted">Permanently deletes your profile, subjects, topics, sessions and progress from this browser.</p>
       <Button variant="danger" icon="trash" onClick={() => { setTyped(''); setOpen(true); }}>Reset all data…</Button>
       {open && (
@@ -104,23 +106,59 @@ export function ResetData() {
   );
 }
 
+const THEMES: { id: ThemePref; label: string; icon: string; hint: string }[] = [
+  { id: 'system', label: 'System', icon: 'monitor', hint: 'Match your device' },
+  { id: 'light', label: 'Light', icon: 'sun', hint: 'Always light' },
+  { id: 'dark', label: 'Dark', icon: 'moon', hint: 'Always dark' },
+];
+
+export function Appearance() {
+  const { store } = useApp();
+  const [theme, setTheme] = useTheme(store);
+  return (
+    <Card title="Appearance" icon="palette">
+      <fieldset className="choice-group">
+        <legend className="field-label">Theme</legend>
+        <div className="theme-options">
+          {THEMES.map((t) => (
+            <label key={t.id} className="theme-option">
+              <input type="radio" name="theme" value={t.id} checked={theme === t.id} onChange={() => setTheme(t.id)} />
+              <span className="theme-option-icon">
+                <Icon name={t.icon} size={20} />
+              </span>
+              <span className="theme-option-text">
+                <span className="theme-option-label">{t.label}</span>
+                <span className="theme-option-hint">{t.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <p className="muted small" style={{ marginTop: 12 }}>Saved in this browser only.</p>
+    </Card>
+  );
+}
+
 export function Settings() {
   return (
     <>
       <PageHeader title="Settings & data" subtitle="Your profile, preferences and data." />
       <div className="grid-2">
-        <Card title="Profile">
+        <Card title="Profile" icon="graduation">
           <ProfileForm />
         </Card>
-        <Card title="Privacy">
-          <p>Your data stays in this browser. StudySync has no account, no server and no analytics, and it never sends your data or prompts anywhere.</p>
-          <p className="muted small">Clearing your browser’s site data will delete it, so export a backup now and then.</p>
-        </Card>
+        <div className="stack-cards">
+          <Appearance />
+          <Card title="Privacy" icon="shield">
+            <p>Your data stays in this browser. StudySync has no account, no server and no analytics, and it never sends your data or prompts anywhere.</p>
+            <p className="muted small">Clearing your browser’s site data will delete it, so export a backup now and then.</p>
+          </Card>
+        </div>
       </div>
-      <Card title="Study preferences">
+      <Card title="Study preferences" icon="clock" className="section-gap">
         <AvailabilityForm />
       </Card>
-      <div className="grid-2" style={{ marginTop: 16 }}>
+      <div className="grid-2 section-gap">
         <ImportExport />
         <ResetData />
       </div>

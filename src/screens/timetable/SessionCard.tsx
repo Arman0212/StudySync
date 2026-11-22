@@ -2,7 +2,7 @@ import type { StudySession, Subject, Topic } from '../../domain/types';
 import { formatDate, formatDuration, formatTime } from '../../domain/dates';
 import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
-import { StatusPill } from '../../ui/bits';
+import { StatusPill, subjectVar } from '../../ui/bits';
 import type { SessionActions } from './useSessionActions';
 
 export function SessionCard({ session: s, subject, topic, actions, showDate, compact }: { session: StudySession; subject?: Subject | undefined; topic?: Topic | undefined; actions: SessionActions; showDate?: boolean; compact?: boolean }) {
@@ -10,10 +10,11 @@ export function SessionCard({ session: s, subject, topic, actions, showDate, com
   const done = s.status === 'completed';
   const label = `${title}, ${formatDate(s.date)} ${formatTime(s.start)}`;
   return (
-    <article className={`session session-${s.status}`} style={{ borderLeftColor: subject?.color ?? 'var(--color-sage)' }} aria-label={`Session: ${label}`}>
+    <article className={`session session-${s.status}`} style={subjectVar(subject?.color)} aria-label={`Session: ${label}`}>
       <div className="session-body">
         <div className="row-between">
           <span className="session-time">
+            <Icon name="clock" size={15} className="session-time-icon" />
             {showDate && `${formatDate(s.date)} · `}
             {formatTime(s.start)}–{formatTime(s.start + s.duration)}
           </span>
@@ -28,7 +29,7 @@ export function SessionCard({ session: s, subject, topic, actions, showDate, com
         </div>
         <p className="session-topic">{title}</p>
         <div className="session-meta">
-          <span>{subject?.name ?? 'Unknown subject'}</span>
+          <span className="session-subject">{subject?.name ?? 'Unknown subject'}</span>
           <span aria-hidden="true">·</span>
           <span>{formatDuration(s.duration)}</span>
           {s.actualMinutes != null && done && (

@@ -2,7 +2,45 @@
 
 Everything below was copied from real command output. Nothing was estimated.
 
-## Latest run: 2026-11-22, 23:47 IST (Asia/Kolkata), after adding interleaved scheduling
+## Latest run: 2026-11-23, 00:21 IST (Asia/Kolkata), after the visual polish pass
+
+Command: `npm run verify`, exit code 0. Environment: macOS (Darwin 25.5), Node v24.14.1, npm 11.11.0, Playwright 1.65.1. New dependencies: `lucide-react` and `@fontsource-variable/inter` (bundled locally, so the font still works offline).
+
+```
+--- verify summary ---
+passed (2.0s)      Type check (tsc strict)
+passed (2.3s)      Lint (eslint)
+passed (2.8s)      Unit, property and component tests (vitest)
+passed (0.5s)      Production build (vite)
+passed (17.7s)     End-to-end + accessibility + responsive tests (playwright)
+
+All verification steps passed.
+```
+
+| Step | Result |
+|---|---|
+| Type check | 0 errors |
+| Lint | 0 errors, 0 warnings |
+| Vitest | **16 files, 191 tests passed, 0 failed** (was 15 files and 138 tests) |
+| Build | succeeded |
+| Playwright | **30 tests passed, 0 failed** (was 29) |
+
+What changed in the tests:
+
+- `src/styles/tokens.test.ts`: every text/background pair is now checked for WCAG AA (4.5:1) in **both** the light and dark themes. New pairs cover the alternate surface, neutral pills, toasts, the dashboard hero and the mock-test paper card. A new set of non-text pairs (focus ring, input borders, ring/bar fill on its track) must reach 3:1 in both themes. There is also a check that the dark theme defines every light token.
+  - This check caught a pre-existing problem: the input border (`borderStrong` `#9fb5a6`) was only 2.18:1 on white. I changed it to `#7d9585` (3.23:1), and the dark value is `#5f7a68` (3.67:1).
+- `src/ui/heatmap.test.ts` (new, 3 tests): week columns run Monday first, only completed sessions count, recorded actual minutes are preferred, and minutes map to the five heatmap levels.
+- `e2e/a11y-responsive.spec.ts`: a new test runs axe on every screen, plus the week view, with the system set to dark mode. It also checks that the Settings theme toggle overrides the system setting, survives a reload, passes axe, and goes back to following the system.
+- During this pass, axe flagged two problems, which I fixed in the app. The tests were not loosened.
+  - The dialog and toast entrance animations faded `opacity`, so text was briefly low-contrast while they appeared. They now animate transform only.
+  - On the dashboard, the "Done" button's visible text was not part of its accessible name ("Mark complete: …"), which breaks WCAG 2.5.3. The button now says "Complete", the same as in the timetable.
+- The responsive check caught a layout bug in the new week calendar: at 390 px the page became 657 px wide, because screen-reader-only labels were positioned against the page instead of the scroll container. Fixed with `position: relative` on the calendar. Every 390 px screenshot is now exactly 390 px wide.
+
+Screenshots: `docs/screenshots/before/` (light, 1440 and 390 px) and `docs/screenshots/after/` (light and dark, 1440 and 390 px, plus `*-activity-*` shots taken after completing two sessions). `node scripts/screenshots.mjs <dir> [--dark]` recreates them from a running `npm run preview`.
+
+---
+
+## Earlier run: 2026-11-22, 23:47 IST (Asia/Kolkata), after adding interleaved scheduling
 
 Command: `npm run verify`, exit code 0. Same environment as the run below; dependencies were already installed by the clean `npm ci` earlier that evening.
 
