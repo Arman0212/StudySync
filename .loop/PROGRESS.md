@@ -53,9 +53,9 @@
 
 ## M8 Mock-test builder
 - [x] 8.1 Prompt templates v1, v2, v3, final in src/prompts + prompt builder + tests
-- [ ] 8.2 prompts/ sheets v1..final
+- [x] 8.2 prompts/ sheets v1..final
 - [x] 8.3 Mock-test screen: form, editable textarea, copy/download/reset, clipboard fallback, saved config, score entry + tests
-- [ ] 8.4 Milestone verify
+- [x] 8.4 Milestone verify
 
 ## M9 Settings, import/export, recovery, demo
 - [x] 9.1 Settings screen: profile/preferences, privacy note, reset with strong confirm
@@ -71,10 +71,10 @@
 - [x] 10.4 Milestone verify
 
 ## M11 Docs, deploy, packaging
-- [ ] 11.1 README (features, commands, formula, architecture, limits, deploy, credits)
+- [x] 11.1 README (features, commands, formula, architecture, limits, deploy, credits)
 - [ ] 11.2 docs/ARCHITECTURE.md (mermaid), DECISIONS.md, HANDOVER.md, TEST_RESULTS.md
-- [ ] 11.3 vercel.json, netlify.toml, GitHub Pages workflow
-- [ ] 11.4 scripts/package.mjs -> studysync.zip
+- [x] 11.3 vercel.json, netlify.toml, GitHub Pages workflow
+- [x] 11.4 scripts/package.mjs -> studysync.zip
 - [ ] 11.5 Milestone verify
 
 ## M12 Final verification
