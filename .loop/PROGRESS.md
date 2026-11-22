@@ -72,10 +72,10 @@
 
 ## M11 Docs, deploy, packaging
 - [x] 11.1 README (features, commands, formula, architecture, limits, deploy, credits)
-- [ ] 11.2 docs/ARCHITECTURE.md (mermaid), DECISIONS.md, HANDOVER.md, TEST_RESULTS.md
+- [x] 11.2 docs/ARCHITECTURE.md (mermaid), DECISIONS.md, HANDOVER.md, TEST_RESULTS.md
 - [x] 11.3 vercel.json, netlify.toml, GitHub Pages workflow
 - [x] 11.4 scripts/package.mjs -> studysync.zip
-- [ ] 11.5 Milestone verify
+- [x] 11.5 Milestone verify
 
 ## M12 Final verification
-- [ ] 12.1 Clean npm ci + npm run verify, preview check, TEST_RESULTS update, package, commit, .loop/DONE
+- [x] 12.1 Clean npm ci + npm run verify, preview check, TEST_RESULTS update, package, commit, .loop/DONE
