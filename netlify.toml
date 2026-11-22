@@ -4,3 +4,5 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Netlify serves the app from the domain root, not GitHub Pages' /StudySync/ sub-path.
+  BASE_PATH = "/"

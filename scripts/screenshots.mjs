@@ -1,14 +1,14 @@
 // Captures full-page screenshots of every screen with demo data loaded.
 // Usage: node scripts/screenshots.mjs <out-dir> [--activity]
 // --activity also completes two of today's sessions and captures the dashboard and progress again.
-// Expects the production build to be served at http://localhost:4173 (npm run build && npm run preview).
+// Expects the production build to be served at http://localhost:4173/StudySync/ (npm run build && npm run preview).
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const out = process.argv[2] ?? 'docs/screenshots/light';
 const withActivity = process.argv.includes('--activity');
-const base = process.env.BASE_URL ?? 'http://localhost:4173/';
+const base = process.env.BASE_URL ?? 'http://localhost:4173/StudySync/';
 mkdirSync(out, { recursive: true });
 
 const SCREENS = [

@@ -2,7 +2,36 @@
 
 Everything below was copied from real command output. Nothing was estimated.
 
-## Latest run: 2026-11-23, 00:31 IST (Asia/Kolkata), after the white light retheme
+## Latest run: 2026-11-23, 00:35 IST (Asia/Kolkata), GitHub Pages base path
+
+Command: `npm run verify`, exit code 0. Same environment as below. Playwright now serves and tests the build at `http://localhost:4173/StudySync/`, the same base path as GitHub Pages.
+
+```
+--- verify summary ---
+passed (1.9s)      Type check (tsc strict)
+passed (2.2s)      Lint (eslint)
+passed (2.9s)      Unit, property and component tests (vitest)
+passed (0.4s)      Production build (vite)
+passed (17.5s)     End-to-end + accessibility + responsive tests (playwright)
+
+All verification steps passed.
+```
+
+| Step | Result |
+|---|---|
+| Vitest | 16 files, 160 tests passed, 0 failed |
+| Playwright | 30 tests passed, 0 failed |
+
+Manual check of the `/StudySync/` build, using a temporary Playwright script that was deleted afterwards. It ran against `vite preview` and against a small static server that imitates GitHub Pages (files under `/StudySync/`, and `404.html` with status 404 for unknown paths):
+
+- **Built paths:** `dist/index.html` references `/StudySync/assets/…` and `/StudySync/favicon.svg`, and the CSS loads Inter from `/StudySync/assets/inter-…woff2`.
+- **Assets in the browser:** the favicon returned 200, `document.fonts` reported Inter Variable as loaded, and there were no failed requests or page errors.
+- **Screens and refresh:** all 9 screens (dashboard, the 4 setup tabs, timetable, progress, mock test, settings) loaded with demo data. Each one showed the same heading after a reload on its hash deep link (`/StudySync/#/…`).
+- **Links typed without the hash:** on the Pages-style server, `/StudySync/timetable` redirected to `/StudySync/#/timetable` (heading "Timetable"), and `/StudySync/progress/` redirected to `#/progress` (heading "Progress"). `vite preview` falls back to `index.html` instead of serving `404.html`, so on preview those URLs open the dashboard.
+
+---
+
+## Earlier run: 2026-11-23, 00:31 IST (Asia/Kolkata), after the white light retheme
 
 Command: `npm run verify`, exit code 0. Environment: macOS (Darwin 25.5), Node v24.14.1, npm 11.11.0, Playwright 1.65.1.
 

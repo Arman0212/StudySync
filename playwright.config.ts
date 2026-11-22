@@ -9,14 +9,15 @@ export default defineConfig({
   reporter: [['list']],
   timeout: 60_000,
   use: {
-    baseURL: 'http://localhost:4173/',
+    // Same base path as the GitHub Pages build (vite.config.ts).
+    baseURL: 'http://localhost:4173/StudySync/',
     trace: 'retain-on-failure',
     timezoneId: 'Asia/Kolkata',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npx vite preview --port 4173 --strictPort',
-    url: 'http://localhost:4173/',
+    url: 'http://localhost:4173/StudySync/',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },

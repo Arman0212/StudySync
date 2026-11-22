@@ -30,9 +30,9 @@ Everything in the brief has been implemented and covered by automated tests. See
 
 ```bash
 npm ci
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:5173/StudySync/
 # or the production build:
-npm run build && npm run preview   # http://localhost:4173
+npm run build && npm run preview   # http://localhost:4173/StudySync/
 ```
 
 Full checks: `npm run verify`. This needs Playwright's Chromium, which is downloaded automatically the first time.

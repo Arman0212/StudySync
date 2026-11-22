@@ -72,9 +72,9 @@ Built for **SCSE4041 Prompt Engineering** by team **Doppelgängers (PE-B25-53)**
 
 ```bash
 npm ci                 # install exact dependencies
-npm run dev            # start the dev server (http://localhost:5173)
+npm run dev            # start the dev server (http://localhost:5173/StudySync/)
 npm run build          # type-check and build to dist/
-npm run preview        # serve the production build (http://localhost:4173)
+npm run preview        # serve the production build (http://localhost:4173/StudySync/)
 
 npm run typecheck      # TypeScript strict, zero errors
 npm run lint           # ESLint, zero warnings
@@ -169,19 +169,26 @@ The project repository is maintained on GitHub, while the deployment platform ca
 
 For deployment, generate a production build using npm run build. The resulting dist/ directory contains the static files required for hosting.
 
+**Base path.** The production build is made for GitHub Pages at <https://arman0212.github.io/StudySync/>, so asset URLs start with `/StudySync/` (`base` in `vite.config.ts`). Hosts that serve the app from the domain root set `BASE_PATH=/`. `netlify.toml` and `vercel.json` already do this. For any other root-level host, build with `BASE_PATH=/ npm run build`.
+
+**Routing and refresh.** Screens use hash URLs (for example `/StudySync/#/timetable`), so refreshing or sharing any screen always loads `index.html`, with no server rewrites. The build also writes a `404.html` that redirects links typed without the hash (such as `/StudySync/timetable`) to the matching screen.
+
+`npm run preview` serves the build at <http://localhost:4173/StudySync/>.
+
 ### Vercel
 1. Push the repository to GitHub, GitLab or Bitbucket.
-2. In Vercel, choose "Add New → Project" and import the repository. `vercel.json` already sets the build command (`npm run build`) and the output folder (`dist`).
+2. In Vercel, choose "Add New → Project" and import the repository. `vercel.json` already sets the build command (`BASE_PATH=/ npm run build`) and the output folder (`dist`).
 3. Deploy. Or use the CLI: `npx vercel` and then `npx vercel --prod`.
 
 ### Netlify
-1. Push the repository, then in Netlify choose "Add new site → Import an existing project". `netlify.toml` sets `npm run build` and the `dist` folder.
-2. Or drag the `dist/` folder onto https://app.netlify.com/drop after running `npm run build`.
+1. Push the repository, then in Netlify choose "Add new site → Import an existing project". `netlify.toml` sets `npm run build`, the `dist` folder and `BASE_PATH=/`.
+2. Or run `BASE_PATH=/ npm run build` and drag the `dist/` folder onto https://app.netlify.com/drop.
 
-### GitHub Pages
+### GitHub Pages (live at <https://arman0212.github.io/StudySync/>)
 1. Push to a GitHub repository whose default branch is `main`.
-2. Go to Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-3. The workflow `.github/workflows/deploy-pages.yml` builds and deploys on every push to `main`. You can also run it by hand from the Actions tab.
+2. Go to Settings → Pages → Build and deployment → Source: **GitHub Actions**. This must be on before the first deploy; otherwise the deploy step fails with "Ensure GitHub Pages has been enabled".
+3. The workflow `.github/workflows/deploy-pages.yml` runs on every push to `main`: `npm ci`, `npm run build`, then `actions/upload-pages-artifact` and `actions/deploy-pages`. You can also run it by hand from the Actions tab.
+4. The default base `/StudySync/` matches the repository name. If the repository is renamed, change `base` in `vite.config.ts`, or set `BASE_PATH` in the workflow's build step.
 
 ## Project documents
 
