@@ -6,3 +6,4 @@
 - `src/domain` + `src/scheduling` are lint-restricted: no React/storage/window/Date.now/new Date(). ids.ts therefore lives in src/state.
 - MIN_SESSION_MINUTES raised 15 → 25 after seeing 10–15 min fragments in the demo timetable.
 - Playwright runs with timezoneId Asia/Kolkata to catch off-by-one-day bugs.
+- useSubmitGuard initially locked 300ms even after a validation failure, so the 2nd click after fixing a form was ignored (caught by component tests). Handlers now return false on validation failure to release immediately.

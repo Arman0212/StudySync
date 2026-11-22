@@ -30,11 +30,11 @@
 - [x] 4.4 Milestone verify
 
 ## M5 Setup screens
-- [ ] 5.1 App state store (reducer + autosave via storage module) + tests
-- [ ] 5.2 Welcome screen (create profile / load demo)
-- [ ] 5.3 Profile + availability forms with inline validation + component tests
-- [ ] 5.4 Commitments form/list (one-off / weekly) + tests
-- [ ] 5.5 Subjects + topics forms, exam-before-start confirm, empty states + tests
+- [x] 5.1 App state store (reducer + autosave via storage module) + tests
+- [x] 5.2 Welcome screen (create profile / load demo)
+- [x] 5.3 Profile + availability forms with inline validation + component tests
+- [x] 5.4 Commitments form/list (one-off / weekly) + tests
+- [x] 5.5 Subjects + topics forms, exam-before-start confirm, empty states + tests
 - [ ] 5.6 Milestone verify
 
 ## M6 Timetable
@@ -42,7 +42,7 @@
 - [ ] 6.2 Day, week and list views with date nav and filters
 - [ ] 6.3 Session actions: edit time/duration, complete (ask topic done), missed, lock, delete, actual minutes + note
 - [ ] 6.4 Reschedule single / bulk with preview; daily totals vs max
-- [ ] 6.5 Component tests (status pills, confirm dialog, session card)
+- [x] 6.5 Component tests (status pills, confirm dialog, session card)
 - [ ] 6.6 Milestone verify
 
 ## M7 Dashboard and progress

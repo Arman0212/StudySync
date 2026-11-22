@@ -49,7 +49,7 @@ export function TopicForm({ subjectId, topic, onDone }: { subjectId: string; top
       };
       const errs = validateTopic(t);
       setErrors(errs);
-      if (hasErrors(errs)) return;
+      if (hasErrors(errs)) return false;
       dispatch({ type: 'upsertTopic', topic: t });
       toast.show(topic ? 'Topic updated' : `Added topic “${t.title}”`);
       if (!topic) setD(fresh());

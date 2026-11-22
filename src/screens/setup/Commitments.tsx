@@ -51,7 +51,7 @@ export function Commitments() {
       };
       const errs = validateCommitment(c);
       setErrors(errs);
-      if (hasErrors(errs)) return;
+      if (hasErrors(errs)) return false;
       dispatch({ type: 'upsertCommitment', commitment: c });
       toast.show(editing ? 'Commitment updated' : 'Commitment added');
       setDraft(blank(now.date));

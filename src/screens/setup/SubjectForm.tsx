@@ -53,11 +53,11 @@ export function SubjectForm({ subject, onDone }: { subject?: Subject; onDone?: (
       };
       const errs = validateSubject(s, data.subjects);
       setErrors(errs);
-      if (hasErrors(errs)) return;
+      if (hasErrors(errs)) return false;
       const warnings = subjectWarnings(s, data.profile?.planStart);
       if (warnings.length > 0) {
         setPending({ subject: s, warnings });
-        return;
+        return false;
       }
       save(s);
     });

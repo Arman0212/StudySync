@@ -59,7 +59,7 @@ export function AvailabilityForm({ onSaved }: { onSaved?: () => void }) {
       };
       const errs = validateAvailability(a);
       setErrors(errs);
-      if (hasErrors(errs)) return;
+      if (hasErrors(errs)) return false;
       dispatch({ type: 'setAvailability', availability: a });
       toast.show('Availability saved');
       onSaved?.();

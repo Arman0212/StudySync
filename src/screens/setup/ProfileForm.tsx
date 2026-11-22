@@ -33,7 +33,7 @@ export function ProfileForm({ onSaved, submitLabel = 'Save profile' }: { onSaved
       const clean = { ...form, displayName: form.displayName.trim(), institution: form.institution.trim() };
       const errs = validateProfile(clean);
       setErrors(errs);
-      if (hasErrors(errs)) return;
+      if (hasErrors(errs)) return false;
       dispatch({ type: 'setProfile', profile: clean });
       toast.show('Profile saved');
       onSaved?.();

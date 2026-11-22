@@ -178,7 +178,7 @@ function ScoreEntry({ subjectId }: { subjectId: string }) {
       const n = Number(score);
       if (score.trim() === '' || !Number.isFinite(n) || n < 0 || n > 100) {
         setError('Enter your score as a percentage from 0 to 100.');
-        return;
+        return false;
       }
       const ts: Record<string, number> = {};
       for (const [k, v] of Object.entries(topicScores)) {
